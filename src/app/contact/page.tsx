@@ -1,0 +1,74 @@
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Mail, Users, Heart, Code, Handshake } from "lucide-react"
+
+const contactTopics = [
+  {
+    title: "General Inquiries",
+    description: "For any general questions about the KMHS Beta Club, our activities, or mission.",
+    icon: Mail,
+  },
+  {
+    title: "Membership Questions",
+    description: "For questions about joining, eligibility, or current member status.",
+    icon: Users,
+  },
+  {
+    title: "Service Hours",
+    description: "For inquiries related to submitting, tracking, or finding service opportunities.",
+    icon: Heart,
+  },
+  {
+    title: "Sponsorship & Partnerships",
+    description: "For inquiries about sponsoring our club or forming a community partnership, please contact us at our club email.",
+    icon: Handshake,
+  },
+  {
+    title: "Website Feedback",
+    description: "Report an issue or provide feedback on our website.",
+    icon: Code,
+  }
+]
+
+export default function ContactPage() {
+  return (
+    <div className="container mx-auto max-w-4xl px-4 py-12 md:px-6">
+        <div className="mb-12 text-center">
+            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
+            Contact Us
+            </h1>
+            <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
+            Have a question? We'd love to hear from you. All communications for the topics below are handled through our club email.
+            </p>
+             <div className="mt-8">
+                <a href="mailto:kmhsbeta@studizilla.com" className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                    <Mail className="mr-2 h-5 w-5" /> kmhsbeta@studizilla.com
+                </a>
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {contactTopics.map((topic) => {
+            const Icon = topic.icon
+            return (
+              <Card key={topic.title} className="border-border/50 bg-secondary/20">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                      <div className="rounded-md bg-primary/10 p-3 text-primary">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <CardTitle>{topic.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <p className="text-muted-foreground">{topic.description}</p>
+                  </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+         <div className="mt-12 text-center text-muted-foreground">
+            <p>We'll get back to you as soon as possible!</p>
+        </div>
+    </div>
+  )
+}

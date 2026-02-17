@@ -1,0 +1,41 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper function to check for Super Admin status.
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.email == 'npatel012010@gmail.com';
+    }
+
+    // Helper function to check for admin status in Storage rules.
+    // It checks if the user is authenticated with an email, which in this app's
+    // structure, means they are an admin.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    // Rules for all files within the admin-avatars directory.
+    match /admin-avatars/{userId}/{allPaths=**} {
+      
+      // Allow public read access for all avatar images so they can be
+      // displayed on the public-facing leadership page.
+      allow read: if true;
+
+      // Allow write access (create, update, delete) under two conditions:
+      // 1. The authenticated user's ID matches the {userId} in the path
+      //    (i.e., they are modifying their own avatar).
+      // 2. The user is the designated Super Admin.
+      allow write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+    }
+
+    // Rules for gallery photos.
+    match /gallery/{allPaths=**} {
+      // Allow public read access for all gallery images.
+      allow read: if true;
+      // Allow write access (create, update, delete) for admins.
+      allow write: if isAdmin();
+    }
+  }
+}

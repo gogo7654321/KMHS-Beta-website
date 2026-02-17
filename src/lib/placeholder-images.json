@@ -1,0 +1,22 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "Abstract futuristic background with glowing lines and particles.",
+      "imageUrl": "https://images.unsplash.com/photo-1620121692029-d088224ddc74?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcwNDAzNDgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract background"
+    },
+    {
+      "id": "beta-logo",
+      "description": "Official Beta Club Logo",
+      "imageUrl": "/logo.png",
+      "imageHint": "beta logo"
+    },
+    {
+      "id": "default-avatar",
+      "description": "Default user avatar placeholder",
+      "imageUrl": "https://images.unsplash.com/photo-1639149888905-fb39731f2e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx1c2VyJTIwYXZhdGFyfGVufDB8fHx8MTc3MDU1MjQ0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "user avatar"
+    }
+  ]
+}

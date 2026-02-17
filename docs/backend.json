@@ -1,0 +1,641 @@
+
+{
+  "entities": {
+    "Event": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Event",
+      "type": "object",
+      "description": "Represents a Beta Club event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the event."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the event."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the event."
+        },
+        "dateTime": {
+          "type": "string",
+          "description": "The date and time of the event.",
+          "format": "date-time"
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the event."
+        },
+        "eventTypeId": {
+          "type": "string",
+          "description": "Reference to EventType. (Relationship: EventType 1:N Event)"
+        },
+        "rsvpEnabled": {
+          "type": "boolean",
+          "description": "Indicates if RSVP is enabled for the event."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "dateTime",
+        "location",
+        "eventTypeId",
+        "rsvpEnabled"
+      ]
+    },
+    "EventType": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "EventType",
+      "type": "object",
+      "description": "Represents the type of an event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the event type."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the event type (e.g., Meeting, Service Project)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the event type."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "ServiceHour": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ServiceHour",
+      "type": "object",
+      "description": "Represents service hours contributed by a member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the service hour record."
+        },
+        "memberId": {
+          "type": "string",
+          "description": "Reference to Member. (Relationship: Member 1:N ServiceHour)"
+        },
+        "eventId": {
+          "type": "string",
+          "description": "Reference to Event. (Relationship: Event 1:N ServiceHour)"
+        },
+        "hours": {
+          "type": "number",
+          "description": "The number of service hours contributed."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date the service hours were performed.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the service activity"
+        }
+      },
+      "required": [
+        "id",
+        "memberId",
+        "eventId",
+        "hours",
+        "date",
+        "description"
+      ]
+    },
+    "Member": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Member",
+      "type": "object",
+      "description": "Represents a Beta Club member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the member."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the member."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the member."
+        },
+        "grade": {
+          "type": "number",
+          "description": "The grade level of the member."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the member.",
+          "format": "email"
+        },
+        "positionId": {
+          "type": "string",
+          "description": "Reference to Position. (Relationship: Position 1:N Member)"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "grade",
+        "email",
+        "positionId"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the admin (matches Firebase Auth UID)."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the admin."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the admin."
+        },
+        "grade": {
+          "type": "number",
+          "description": "The grade level of the admin."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the admin.",
+          "format": "email"
+        },
+        "position": {
+          "type": "string",
+          "description": "The position of the admin (e.g., President, Faculty Advisor)."
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography of the administrator."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL for the administrator's profile picture.",
+          "format": "uri"
+        },
+        "order": {
+          "type": "number",
+          "description": "Display order on the leadership page."
+        },
+        "personalUrl": {
+          "type": "string",
+          "description": "A personal website or social media URL for the administrator.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "grade",
+        "email",
+        "position"
+      ]
+    },
+    "Position": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Position",
+      "type": "object",
+      "description": "Represents a leadership position within the Beta Club.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the position."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the position (e.g., President, Vice President)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the responsibilities of the position."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description"
+      ]
+    },
+    "Photo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Photo",
+      "type": "object",
+      "description": "Represents a photo in the gallery.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the photo."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the photo."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the photo."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the photo.",
+          "enum": [
+            "Service",
+            "Academics",
+            "Social",
+            "Ceremonies"
+          ]
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the photo, hosted in Firebase Storage.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the photo was added.",
+          "format": "date-time"
+        },
+        "names": {
+          "type": "array",
+          "description": "A list of names of people featured in the photo.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "order": {
+          "type": "number",
+          "description": "Display order in the gallery."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "category",
+        "imageUrl",
+        "createdAt"
+      ]
+    },
+    "Announcement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Announcement",
+      "type": "object",
+      "description": "Represents an announcement created by the administration.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the announcement."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the announcement."
+        },
+        "content": {
+          "type": "string",
+          "description": "The content of the announcement."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The date and time the announcement was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "content",
+        "createdAt"
+      ]
+    },
+    "HomePageContent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Home Page Content",
+      "type": "object",
+      "description": "Singleton document for dynamic content on the home page.",
+      "properties": {
+        "announcementText": {
+          "type": "string",
+          "description": "The text for the main announcement bar on the home page."
+        }
+      },
+      "required": [
+        "announcementText"
+      ]
+    },
+    "GallerySettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Gallery Settings",
+      "type": "object",
+      "description": "Singleton document for dynamic settings for the photo gallery, controlled by Super Admins.",
+      "properties": {
+        "isTitleRequired": {
+          "type": "boolean",
+          "description": "If true, the title field is mandatory for photo uploads."
+        },
+        "isDescriptionRequired": {
+          "type": "boolean",
+          "description": "If true, the description field is mandatory for photo uploads."
+        },
+        "isNamesRequired": {
+          "type": "boolean",
+          "description": "If true, the names field is mandatory for photo uploads."
+        }
+      },
+      "required": []
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/admin/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Collection of admin users. Existence of a document with a user's ID grants admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Auth UID of the admin user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/events/{eventId}",
+        "definition": {
+          "entityName": "Event",
+          "schema": {
+            "$ref": "#/backend/entities/Event"
+          },
+          "description": "Events managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "eventId",
+              "description": "Unique identifier for the event."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/eventTypes/{eventTypeId}",
+        "definition": {
+          "entityName": "EventType",
+          "schema": {
+            "$ref": "#/backend/entities/EventType"
+          },
+          "description": "Event types managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "eventTypeId",
+              "description": "Unique identifier for the event type."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/serviceHours/{serviceHourId}",
+        "definition": {
+          "entityName": "ServiceHour",
+          "schema": {
+            "$ref": "#/backend/entities/ServiceHour"
+          },
+          "description": "Service hours managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "serviceHourId",
+              "description": "Unique identifier for the service hour record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/members/{memberId}",
+        "definition": {
+          "entityName": "Member",
+          "schema": {
+            "$ref": "#/backend/entities/Member"
+          },
+          "description": "Members managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "memberId",
+              "description": "Unique identifier for the member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/positions/{positionId}",
+        "definition": {
+          "entityName": "Position",
+          "schema": {
+            "$ref": "#/backend/entities/Position"
+          },
+          "description": "Positions managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "positionId",
+              "description": "Unique identifier for the position."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/photos/{photoId}",
+        "definition": {
+          "entityName": "Photo",
+          "schema": {
+            "$ref": "#/backend/entities/Photo"
+          },
+          "description": "Photos managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "photoId",
+              "description": "Unique identifier for the photo."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/devportal/announcements/{announcementId}",
+        "definition": {
+          "entityName": "Announcement",
+          "schema": {
+            "$ref": "#/backend/entities/Announcement"
+          },
+          "description": "Announcements managed within the executive dev portal, accessible only to admins.",
+          "params": [
+            {
+              "name": "announcementId",
+              "description": "Unique identifier for the announcement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/events/{eventId}",
+        "definition": {
+          "entityName": "Event",
+          "schema": {
+            "$ref": "#/backend/entities/Event"
+          },
+          "description": "Collection of events.",
+          "params": [
+            {
+              "name": "eventId",
+              "description": "Unique identifier for the event."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/eventTypes/{eventTypeId}",
+        "definition": {
+          "entityName": "EventType",
+          "schema": {
+            "$ref": "#/backend/entities/EventType"
+          },
+          "description": "Collection of event types.",
+          "params": [
+            {
+              "name": "eventTypeId",
+              "description": "Unique identifier for the event type."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/serviceHours/{serviceHourId}",
+        "definition": {
+          "entityName": "ServiceHour",
+          "schema": {
+            "$ref": "#/backend/entities/ServiceHour"
+          },
+          "description": "Collection of service hours.",
+          "params": [
+            {
+              "name": "serviceHourId",
+              "description": "Unique identifier for the service hour record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/members/{memberId}",
+        "definition": {
+          "entityName": "Member",
+          "schema": {
+            "$ref": "#/backend/entities/Member"
+          },
+          "description": "Collection of members.",
+          "params": [
+            {
+              "name": "memberId",
+              "description": "Unique identifier for the member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/positions/{positionId}",
+        "definition": {
+          "entityName": "Position",
+          "schema": {
+            "$ref": "#/backend/entities/Position"
+          },
+          "description": "Collection of positions.",
+          "params": [
+            {
+              "name": "positionId",
+              "description": "Unique identifier for the position."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/photos/{photoId}",
+        "definition": {
+          "entityName": "Photo",
+          "schema": {
+            "$ref": "#/backend/entities/Photo"
+          },
+          "description": "Collection of photos for the public gallery.",
+          "params": [
+            {
+              "name": "photoId",
+              "description": "Unique identifier for the photo."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/announcements/{announcementId}",
+        "definition": {
+          "entityName": "Announcement",
+          "schema": {
+            "$ref": "#/backend/entities/Announcement"
+          },
+          "description": "Collection of announcements.",
+          "params": [
+            {
+              "name": "announcementId",
+              "description": "Unique identifier for the announcement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/siteContent/home",
+        "definition": {
+          "entityName": "HomePageContent",
+          "schema": {
+            "$ref": "#/backend/entities/HomePageContent"
+          },
+          "description": "Singleton document containing dynamic content for the home page, like the main announcement.",
+          "params": []
+        }
+      },
+      {
+        "path": "/siteContent/gallerySettings",
+        "definition": {
+          "entityName": "GallerySettings",
+          "schema": {
+            "$ref": "#/backend/entities/GallerySettings"
+          },
+          "description": "Singleton document containing dynamic settings for the gallery.",
+          "params": []
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the BetaSphere KMHS application, focusing on a secure and scalable approach, especially for the hidden dev portal for executives. It prioritizes Authorization Independence, DBAC (Database Auth Based Control), and clear QAPs (Rules are not Filters). This design assumes that Firebase Authentication is used to authenticate users, and the `uid` obtained from `request.auth.uid` is the primary means of identification.\n\n**Authorization Independence:**\n\n*   The design avoids hierarchical authorization dependencies (`get()` calls in security rules). Instead, where subcollections depend on parent attributes, those attributes are denormalized into the subcollection documents. For example, access control lists are copied into subcollections of events or members if needed, although in this case the admin portal access is controlled by a dedicated collection `/admin/{uid}`.\n\n**Structural Segregation:**\n\n*   The structure segregates data based on access requirements. The `/devportal` collection and its subcollections are exclusively for executives and have specific rules enforced through the `/admin/{uid}` collection.\n\n**Access Modeling:**\n\n*   **Private Data:** User-specific data (if any) can be stored under `/users/{uid}` if needed, following path-based ownership.\n*   **Collaborative Data:** For data requiring collaborative access (if necessary), a membership map (`members: {uid1: \"role\", uid2: \"role\"}`) can be denormalized into documents.\n*   **Global Roles (DBAC):** Executive access is managed via existence in the `/admin/{uid}` collection.\n\n**QAPs (Rules are not Filters):**\n\n*   Segregation of the devportal data allows for secure `list` operations without complex filtering in rules.\n\n**Invariants:**\n\n*   The structure supports invariants such as ownership and timestamps. For example, the `createdAt` field in announcements can be enforced via rules. This design does NOT use custom claims.\n\n**Executive Dev Portal:**\n\n*   The core requirement is the hidden dev portal `/devportal`, accessible only to executives. To facilitate this, a `/admin/{uid}` collection manages executive privileges. If a user's `uid` exists as a document in this collection, they are considered an executive and have access to the `/devportal` and its subcollections.\n\n*   Inside `/devportal`, separate collections are used for events, service hours, and other related entities, mirroring the main data structure but with stricter access controls.\n\n**Denormalization Strategy:**\n\nThe most critical denormalization occurs with the executive role. Instead of using custom claims or complex `get()` calls, a user's presence in the `/admin/{uid}` collection grants them access. This presence is simple to check in security rules (`exists(/databases/$(database)/documents/admin/$(request.auth.uid))`) and is authorization independent.\n\nThis structure ensures that security rules remain simple, robust, and easily debuggable while providing the required access control for the BetaSphere KMHS application and its executive dev portal."
+  }
+}
