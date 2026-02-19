@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: 'The official website for the KMHS Beta Club.',
   icons: {
     icon: '/kmhs%20beta%20club%20logo.png',
+    shortcut: '/kmhs%20beta%20club%20logo.png',
+    apple: '/kmhs%20beta%20club%20logo.png',
   },
 };
 
