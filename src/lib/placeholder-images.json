@@ -9,13 +9,13 @@
     {
       "id": "beta-logo",
       "description": "Official Beta Club Logo",
-      "imageUrl": "https://images.unsplash.com/photo-1769952529152-88b736e04daf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjbHViJTIwbG9nb3xlbnwwfHx8fDE3NzE0MjY3ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "/kmhs%20beta%20club%20logo.png",
       "imageHint": "club logo"
     },
     {
       "id": "default-avatar",
       "description": "Default user avatar placeholder",
-      "imageUrl": "https://images.unsplash.com/photo-1639149888905-fb39731f2e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx1c2VyJTIwYXZhdGFyfGVufDB8fHx8MTc3MDU1MjQ0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1639149888905-fb39731f2e6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx1c2VyJTIwYXZhdGFyfGVufDB8fHx8MTc3MDU1MjQ0NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "user avatar"
     }
   ]

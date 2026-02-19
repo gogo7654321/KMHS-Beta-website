@@ -9,6 +9,9 @@ import { FirebaseClientProvider } from '@/firebase';
 export const metadata: Metadata = {
   title: 'KMHS Beta',
   description: 'The official website for the KMHS Beta Club.',
+  icons: {
+    icon: '/kmhs%20beta%20club%20logo.png',
+  },
 };
 
 export default function RootLayout({
