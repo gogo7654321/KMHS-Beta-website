@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   title: 'KMHS Beta',
   description: 'The official website for the KMHS Beta Club.',
   icons: {
-    icon: '/kmhs%20beta%20club%20logo.png',
+    icon: [
+      { url: '/kmhs%20beta%20club%20logo.png' },
+      { url: '/kmhs%20beta%20club%20logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/kmhs%20beta%20club%20logo.png', sizes: '16x16', type: 'image/png' },
+    ],
     shortcut: '/kmhs%20beta%20club%20logo.png',
     apple: '/kmhs%20beta%20club%20logo.png',
   },
