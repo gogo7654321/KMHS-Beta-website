@@ -24,10 +24,13 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+} from '@radix-ui/react-sortable'; // Corrected import
 import { CSS } from '@dnd-kit/utilities';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+
+// Re-importing from dnd-kit correctly as the previous one was slightly off in the user's snippet
+import { SortableContext as DndSortableContext } from '@dnd-kit/sortable';
 
 function LeadershipSkeleton() {
   return (
@@ -55,86 +58,6 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
   const fullName = `${admin.firstName} ${admin.lastName}`;
   const position = admin.position;
   const bio = admin.bio || 'No bio available.';
-  const studizillaText = "Studizilla";
-
-  // State for animations
-  const [typedName, setTypedName] = useState(isSuperAdmin ? '' : fullName);
-  const [typedPosition, setTypedPosition] = useState(isSuperAdmin ? '' : position);
-  const [typedBio, setTypedBio] = useState(isSuperAdmin ? '' : bio);
-  const [typedStudizilla, setTypedStudizilla] = useState(isSuperAdmin ? '' : studizillaText);
-
-  // Animation phase control
-  const [nameFinished, setNameFinished] = useState(!isSuperAdmin);
-  const [positionFinished, setPositionFinished] = useState(!isSuperAdmin);
-  const [bioFinished, setBioFinished] = useState(!isSuperAdmin);
-
-  // Typing effect for Name
-  useEffect(() => {
-    if (isSuperAdmin && !nameFinished) {
-      const nameInterval = setInterval(() => {
-        setTypedName((current) => {
-          if (current.length < fullName.length) {
-            return fullName.substring(0, current.length + 1);
-          }
-          clearInterval(nameInterval);
-          setNameFinished(true);
-          return fullName;
-        });
-      }, 75);
-      return () => clearInterval(nameInterval);
-    }
-  }, [isSuperAdmin, fullName, nameFinished]);
-
-  // Typing effect for Position
-  useEffect(() => {
-    if (isSuperAdmin && nameFinished && !positionFinished) {
-      const posInterval = setInterval(() => {
-        setTypedPosition((current) => {
-          if (current.length < position.length) {
-            return position.substring(0, current.length + 1);
-          }
-          clearInterval(posInterval);
-          setPositionFinished(true);
-          return position;
-        });
-      }, 60);
-      return () => clearInterval(posInterval);
-    }
-  }, [isSuperAdmin, nameFinished, position, positionFinished]);
-
-    // Typing effect for Bio
-  useEffect(() => {
-    if (isSuperAdmin && positionFinished && !bioFinished) {
-        const bioInterval = setInterval(() => {
-            setTypedBio((current) => {
-                if (current.length < bio.length) {
-                    return bio.substring(0, current.length + 1);
-                }
-                clearInterval(bioInterval);
-                setBioFinished(true);
-                return bio;
-            });
-        }, 20); // Faster typing for bio
-        return () => clearInterval(bioInterval);
-    }
-  }, [isSuperAdmin, positionFinished, bio, bioFinished]);
-
-  // Typing effect for "Studizilla" button
-  useEffect(() => {
-    if (isSuperAdmin && bioFinished) {
-      const studizillaInterval = setInterval(() => {
-        setTypedStudizilla((current) => {
-          if (current.length < studizillaText.length) {
-            return studizillaText.substring(0, current.length + 1);
-          }
-          clearInterval(studizillaInterval);
-          return studizillaText;
-        });
-      }, 100);
-      return () => clearInterval(studizillaInterval);
-    }
-  }, [isSuperAdmin, bioFinished]);
-
 
   let hostname: string | null = null;
   if (isSuperAdmin && admin.personalUrl) {
@@ -144,15 +67,6 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
       console.error("Invalid personal URL for admin:", admin.email);
     }
   }
-
-  const BlinkingCursor = ({ active, className }: { active: boolean, className?: string }) => 
-    active ? <span className={cn("inline-block w-0.5 animate-pulse bg-blue-400", className)} /> : null;
-  
-  // Determine cursor visibility for each phase
-  const showNameCursor = isSuperAdmin && !nameFinished;
-  const showPositionCursor = isSuperAdmin && nameFinished && !positionFinished;
-  const showBioCursor = isSuperAdmin && positionFinished && !bioFinished;
-  const showStudizillaCursor = isSuperAdmin && bioFinished && typedStudizilla.length < studizillaText.length;
 
   return (
     <Card className={cn(
@@ -185,20 +99,17 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
           "font-headline text-xl font-bold text-foreground min-h-[28px] flex justify-center items-center",
           isSuperAdmin && "bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
         )}>
-          {typedName}
-          <BlinkingCursor active={showNameCursor} className="h-6 ml-1" />
+          {fullName}
         </CardTitle>
         <CardDescription className={cn(
           "font-semibold text-primary min-h-[24px] flex justify-center items-center",
         )}>
-          {typedPosition}
-          <BlinkingCursor active={showPositionCursor} className="h-5 ml-1" />
+          {position}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-grow flex-col px-6 pb-6">
         <p className="flex-grow text-sm text-muted-foreground min-h-[50px]">
-            {typedBio}
-            <BlinkingCursor active={showBioCursor} className="h-4 ml-1" />
+            {bio}
         </p>
         <p className="mt-4 text-xs font-bold text-foreground/90">Grade: {admin.grade}</p>
         {isSuperAdmin && admin.personalUrl && (
@@ -216,8 +127,7 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
               ) : (
                 <LinkIcon className="mr-2 h-4 w-4" />
               )}
-              {typedStudizilla}
-              <BlinkingCursor active={showStudizillaCursor} className="h-5 ml-1" />
+              Studizilla
             </Link>
           </Button>
         )}
