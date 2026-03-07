@@ -24,13 +24,10 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-} from '@radix-ui/react-sortable'; // Corrected import
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
-// Re-importing from dnd-kit correctly as the previous one was slightly off in the user's snippet
-import { SortableContext as DndSortableContext } from '@dnd-kit/sortable';
 
 function LeadershipSkeleton() {
   return (
