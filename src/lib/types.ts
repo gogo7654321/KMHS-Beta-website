@@ -12,7 +12,7 @@ export type Benefit = {
   icon: LucideIcon;
 };
 
-export type EventType = 'Service' | 'Social' | 'Meeting' | 'Fundraiser';
+export type EventType = 'Meeting' | 'Service' | 'Fundraiser' | 'Social';
 
 export type Event = {
   id: string;
@@ -20,7 +20,7 @@ export type Event = {
   description: string;
   dateTime: string; // ISO string
   location: string;
-  type: EventType;
+  types: EventType[];
   rsvpEnabled?: boolean;
 };
 

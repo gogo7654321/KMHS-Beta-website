@@ -12,7 +12,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,11 +21,11 @@ import type { Event, EventType } from '@/lib/types';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Checkbox } from '@/components/ui/checkbox';
 
-const eventTypes: EventType[] = ['Service', 'Social', 'Meeting', 'Fundraiser'];
+const eventTypes: EventType[] = ['Meeting', 'Service', 'Fundraiser', 'Social'];
 
 const eventFormSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters.'),
@@ -33,7 +33,7 @@ const eventFormSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   date: z.date({ required_error: 'A date is required.' }),
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm.'),
-  type: z.enum(['Service', 'Social', 'Meeting', 'Fundraiser'], { required_error: 'Event type is required.' }),
+  types: z.array(z.string()).min(1, 'Select at least one event type.'),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
@@ -59,7 +59,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       location: '',
       date: undefined,
       time: '12:00',
-      type: undefined,
+      types: [],
     },
   });
 
@@ -73,7 +73,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
           location: event.location,
           date: eventDate,
           time: format(eventDate, 'HH:mm'),
-          type: event.type,
+          types: event.types || [],
         });
       } else {
         form.reset({
@@ -82,7 +82,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
             location: '',
             date: new Date(),
             time: '12:00',
-            type: 'Service',
+            types: [],
         });
       }
     }
@@ -101,7 +101,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
         description: data.description,
         location: data.location,
         dateTime: combinedDateTime.toISOString(),
-        type: data.type,
+        types: data.types as EventType[],
       };
 
       let eventRef;
@@ -137,7 +137,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === 'add' ? 'Add New Event' : 'Edit Event'}</DialogTitle>
           <DialogDescription>
@@ -149,22 +149,58 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
             <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Annual Food Drive" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
-             <FormField control={form.control} name="type" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Event Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Select an event type" /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {eventTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
+             
+             <FormField
+              control={form.control}
+              name="types"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Event Categories</FormLabel>
+                    <FormDescription>
+                      Select one or more categories that this event falls under.
+                    </FormDescription>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {eventTypes.map((type) => (
+                      <FormField
+                        key={type}
+                        control={form.control}
+                        name="types"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={type}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(type)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, type])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== type
+                                          )
+                                        )
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal cursor-pointer">
+                                {type}
+                              </FormLabel>
+                            </FormItem>
+                          )
+                        }}
+                      />
                     ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )} />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="date" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Date</FormLabel>
