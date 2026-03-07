@@ -33,6 +33,7 @@ const eventFormSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   date: z.date({ required_error: 'A date is required.' }),
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm.'),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm.').optional(),
   types: z.array(z.string()).min(1, 'Select at least one event type.'),
 });
 
@@ -59,6 +60,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       location: '',
       date: undefined,
       time: '12:00',
+      endTime: '13:00',
       types: [],
     },
   });
@@ -73,6 +75,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
           location: event.location,
           date: eventDate,
           time: format(eventDate, 'HH:mm'),
+          endTime: event.endTime || format(new Date(eventDate.getTime() + 3600000), 'HH:mm'),
           types: event.types || [],
         });
       } else {
@@ -82,6 +85,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
             location: '',
             date: new Date(),
             time: '12:00',
+            endTime: '13:00',
             types: [],
         });
       }
@@ -101,7 +105,9 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
         description: data.description,
         location: data.location,
         dateTime: combinedDateTime.toISOString(),
+        endTime: data.endTime,
         types: data.types as EventType[],
+        rsvpEnabled: false,
       };
 
       let eventRef;
@@ -220,9 +226,14 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                     <FormMessage />
                     </FormItem>
                 )}/>
-                <FormField control={form.control} name="time" render={({ field }) => (
-                    <FormItem><FormLabel>Time (24h format)</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
+                <div className="grid grid-cols-2 gap-2">
+                  <FormField control={form.control} name="time" render={({ field }) => (
+                      <FormItem><FormLabel>Start</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                  <FormField control={form.control} name="endTime" render={({ field }) => (
+                      <FormItem><FormLabel>End</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                </div>
             </div>
             <FormField control={form.control} name="location" render={({ field }) => (
                 <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., KMHS Front Entrance" {...field} /></FormControl><FormMessage /></FormItem>

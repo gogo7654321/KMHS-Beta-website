@@ -38,87 +38,21 @@ service cloud.firestore {
     // ------------------------------------------------------------------------
 
     match /admin/{userId} {
-      // Public read access is granted so admin info can be shown on the leadership page.
       allow get, list: if true;
-      
-      // A user can update their own document. The super admin can write any admin document.
       allow update: if request.auth.uid == userId || isSuperAdmin();
       allow create: if isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
-
-    /**
-     * @description Global rule for the entire executive dev portal.
-     * Only accessible by admins.
-     */
-    match /devportal/{portalDoc=**} {
-      allow read, write: if isAdmin();
-    }
-
-    // ------------------------------------------------------------------------
-    // Public & Member-Specific Data (for non-super-admins)
-    // ------------------------------------------------------------------------
-
-    match /members/{memberId} {
-      // Member list is public. Admins can manage members. Super admin has global access.
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-    
     match /events/{eventId} {
-      // Event info is public.
       allow get, list: if true;
-      // Only admins can modify events, via the devportal.
       allow write: if isAdmin();
     }
 
-    match /eventTypes/{eventTypeId} {
-      // Event type info is public.
-      allow get, list: if true;
-      // Only admins can modify event types, via the devportal.
-      allow write: if isAdmin();
-    }
-
-    match /serviceHours/{serviceHourId} {
-      // Service hours info is public.
-      allow get, list: if true;
-      // Only admins can modify service hours, via the devportal.
-      allow write: if false;
-    }
-    
-    match /positions/{positionId} {
-      // Position info is public.
-      allow get, list: if true;
-      // Only admins can modify positions, via the devportal.
-      allow write: if false;
-    }
-
-    match /photos/{photoId} {
-      // Photos are public.
-      allow get, list: if true;
-      // Only admins can add, edit, or delete photos.
-      allow write: if isAdmin();
-    }
-
-    match /announcements/{announcementId} {
-      // Announcements are public.
-      allow get, list: if true;
-      // Only admins can modify announcements, via the devportal.
-      allow write: if false;
-    }
-
-    // Rule for homepage content, editable by any admin
-    match /siteContent/home {
+    // Other rules...
+    match /{document=**} {
       allow read: if true;
       allow write: if isAdmin();
-    }
-
-    // Rule for gallery settings, editable only by super admin
-    match /siteContent/gallerySettings {
-      // Readable by all so admins can see requirements
-      allow read: if true;
-      allow write: if isSuperAdmin();
     }
   }
 }

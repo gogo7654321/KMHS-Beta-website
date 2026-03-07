@@ -24,13 +24,21 @@
           "description": "The date and time of the event.",
           "format": "date-time"
         },
+        "endTime": {
+          "type": "string",
+          "description": "The end time of the event (optional).",
+          "format": "time"
+        },
         "location": {
           "type": "string",
           "description": "The location of the event."
         },
-        "eventTypeId": {
-          "type": "string",
-          "description": "Reference to EventType. (Relationship: EventType 1:N Event)"
+        "types": {
+          "type": "array",
+          "description": "List of categories the event belongs to.",
+          "items": {
+            "type": "string"
+          }
         },
         "rsvpEnabled": {
           "type": "boolean",
@@ -43,7 +51,7 @@
         "description",
         "dateTime",
         "location",
-        "eventTypeId",
+        "types",
         "rsvpEnabled"
       ]
     },
@@ -390,118 +398,6 @@
         }
       },
       {
-        "path": "/devportal/events/{eventId}",
-        "definition": {
-          "entityName": "Event",
-          "schema": {
-            "$ref": "#/backend/entities/Event"
-          },
-          "description": "Events managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "eventId",
-              "description": "Unique identifier for the event."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/eventTypes/{eventTypeId}",
-        "definition": {
-          "entityName": "EventType",
-          "schema": {
-            "$ref": "#/backend/entities/EventType"
-          },
-          "description": "Event types managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "eventTypeId",
-              "description": "Unique identifier for the event type."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/serviceHours/{serviceHourId}",
-        "definition": {
-          "entityName": "ServiceHour",
-          "schema": {
-            "$ref": "#/backend/entities/ServiceHour"
-          },
-          "description": "Service hours managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "serviceHourId",
-              "description": "Unique identifier for the service hour record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/members/{memberId}",
-        "definition": {
-          "entityName": "Member",
-          "schema": {
-            "$ref": "#/backend/entities/Member"
-          },
-          "description": "Members managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "memberId",
-              "description": "Unique identifier for the member."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/positions/{positionId}",
-        "definition": {
-          "entityName": "Position",
-          "schema": {
-            "$ref": "#/backend/entities/Position"
-          },
-          "description": "Positions managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "positionId",
-              "description": "Unique identifier for the position."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/photos/{photoId}",
-        "definition": {
-          "entityName": "Photo",
-          "schema": {
-            "$ref": "#/backend/entities/Photo"
-          },
-          "description": "Photos managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "photoId",
-              "description": "Unique identifier for the photo."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/devportal/announcements/{announcementId}",
-        "definition": {
-          "entityName": "Announcement",
-          "schema": {
-            "$ref": "#/backend/entities/Announcement"
-          },
-          "description": "Announcements managed within the executive dev portal, accessible only to admins.",
-          "params": [
-            {
-              "name": "announcementId",
-              "description": "Unique identifier for the announcement."
-            }
-          ]
-        }
-      },
-      {
         "path": "/events/{eventId}",
         "definition": {
           "entityName": "Event",
@@ -516,126 +412,7 @@
             }
           ]
         }
-      },
-      {
-        "path": "/eventTypes/{eventTypeId}",
-        "definition": {
-          "entityName": "EventType",
-          "schema": {
-            "$ref": "#/backend/entities/EventType"
-          },
-          "description": "Collection of event types.",
-          "params": [
-            {
-              "name": "eventTypeId",
-              "description": "Unique identifier for the event type."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/serviceHours/{serviceHourId}",
-        "definition": {
-          "entityName": "ServiceHour",
-          "schema": {
-            "$ref": "#/backend/entities/ServiceHour"
-          },
-          "description": "Collection of service hours.",
-          "params": [
-            {
-              "name": "serviceHourId",
-              "description": "Unique identifier for the service hour record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/members/{memberId}",
-        "definition": {
-          "entityName": "Member",
-          "schema": {
-            "$ref": "#/backend/entities/Member"
-          },
-          "description": "Collection of members.",
-          "params": [
-            {
-              "name": "memberId",
-              "description": "Unique identifier for the member."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/positions/{positionId}",
-        "definition": {
-          "entityName": "Position",
-          "schema": {
-            "$ref": "#/backend/entities/Position"
-          },
-          "description": "Collection of positions.",
-          "params": [
-            {
-              "name": "positionId",
-              "description": "Unique identifier for the position."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/photos/{photoId}",
-        "definition": {
-          "entityName": "Photo",
-          "schema": {
-            "$ref": "#/backend/entities/Photo"
-          },
-          "description": "Collection of photos for the public gallery.",
-          "params": [
-            {
-              "name": "photoId",
-              "description": "Unique identifier for the photo."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/announcements/{announcementId}",
-        "definition": {
-          "entityName": "Announcement",
-          "schema": {
-            "$ref": "#/backend/entities/Announcement"
-          },
-          "description": "Collection of announcements.",
-          "params": [
-            {
-              "name": "announcementId",
-              "description": "Unique identifier for the announcement."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/siteContent/home",
-        "definition": {
-          "entityName": "HomePageContent",
-          "schema": {
-            "$ref": "#/backend/entities/HomePageContent"
-          },
-          "description": "Singleton document containing dynamic content for the home page, like the main announcement.",
-          "params": []
-        }
-      },
-      {
-        "path": "/siteContent/gallerySettings",
-        "definition": {
-          "entityName": "GallerySettings",
-          "schema": {
-            "$ref": "#/backend/entities/GallerySettings"
-          },
-          "description": "Singleton document containing dynamic settings for the gallery.",
-          "params": []
-        }
       }
-    ],
-    "reasoning": "This Firestore structure is designed to support the BetaSphere KMHS application, focusing on a secure and scalable approach, especially for the hidden dev portal for executives. It prioritizes Authorization Independence, DBAC (Database Auth Based Control), and clear QAPs (Rules are not Filters). This design assumes that Firebase Authentication is used to authenticate users, and the `uid` obtained from `request.auth.uid` is the primary means of identification.\n\n**Authorization Independence:**\n\n*   The design avoids hierarchical authorization dependencies (`get()` calls in security rules). Instead, where subcollections depend on parent attributes, those attributes are denormalized into the subcollection documents. For example, access control lists are copied into subcollections of events or members if needed, although in this case the admin portal access is controlled by a dedicated collection `/admin/{uid}`.\n\n**Structural Segregation:**\n\n*   The structure segregates data based on access requirements. The `/devportal` collection and its subcollections are exclusively for executives and have specific rules enforced through the `/admin/{uid}` collection.\n\n**Access Modeling:**\n\n*   **Private Data:** User-specific data (if any) can be stored under `/users/{uid}` if needed, following path-based ownership.\n*   **Collaborative Data:** For data requiring collaborative access (if necessary), a membership map (`members: {uid1: \"role\", uid2: \"role\"}`) can be denormalized into documents.\n*   **Global Roles (DBAC):** Executive access is managed via existence in the `/admin/{uid}` collection.\n\n**QAPs (Rules are not Filters):**\n\n*   Segregation of the devportal data allows for secure `list` operations without complex filtering in rules.\n\n**Invariants:**\n\n*   The structure supports invariants such as ownership and timestamps. For example, the `createdAt` field in announcements can be enforced via rules. This design does NOT use custom claims.\n\n**Executive Dev Portal:**\n\n*   The core requirement is the hidden dev portal `/devportal`, accessible only to executives. To facilitate this, a `/admin/{uid}` collection manages executive privileges. If a user's `uid` exists as a document in this collection, they are considered an executive and have access to the `/devportal` and its subcollections.\n\n*   Inside `/devportal`, separate collections are used for events, service hours, and other related entities, mirroring the main data structure but with stricter access controls.\n\n**Denormalization Strategy:**\n\nThe most critical denormalization occurs with the executive role. Instead of using custom claims or complex `get()` calls, a user's presence in the `/admin/{uid}` collection grants them access. This presence is simple to check in security rules (`exists(/databases/$(database)/documents/admin/$(request.auth.uid))`) and is authorization independent.\n\nThis structure ensures that security rules remain simple, robust, and easily debuggable while providing the required access control for the BetaSphere KMHS application and its executive dev portal."
+    ]
   }
 }

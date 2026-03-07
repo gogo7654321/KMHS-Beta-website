@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { Event, EventType, Admin } from '@/lib/types';
 import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History } from 'lucide-react';
-import { format, isPast } from 'date-fns';
+import { format, isPast, parse } from 'date-fns';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,11 +19,23 @@ import { cn } from '@/lib/utils';
 
 const eventTypes: ['All', ...EventType[]] = ['All', 'Meeting', 'Service', 'Fundraiser', 'Social'];
 
-function ClientDateTime({ dateTime, formatStr, className, tag: Tag = 'span' }: { dateTime: string, formatStr: string, className?: string, tag?: 'span' | 'div' }) {
+function ClientDateTime({ dateTime, endTime, formatStr, className, tag: Tag = 'span' }: { dateTime: string, endTime?: string, formatStr: string, className?: string, tag?: 'span' | 'div' }) {
     const [formatted, setFormatted] = useState<string | null>(null);
     useEffect(() => {
-        setFormatted(format(new Date(dateTime), formatStr));
-    }, [dateTime, formatStr]);
+        const start = new Date(dateTime);
+        let timeLabel = format(start, formatStr);
+        if (endTime && formatStr === 'p') {
+            try {
+                const endParsed = parse(endTime, 'HH:mm', new Date());
+                timeLabel = `${format(start, 'h:mm a')} - ${format(endParsed, 'h:mm a')}`;
+            } catch (e) {
+                console.error("Failed to parse end time", e);
+            }
+        } else if (formatStr !== 'p') {
+             timeLabel = format(start, formatStr);
+        }
+        setFormatted(timeLabel);
+    }, [dateTime, endTime, formatStr]);
 
     if (!formatted) {
         return <Skeleton className={cn("h-5 w-32", className)} />;
@@ -57,53 +69,81 @@ function EventCard({ event, canManage, isEventPast }: { event: Event, canManage:
 
   return (
     <Card className={cn(
-        "group flex h-full flex-col overflow-hidden bg-card transition-all duration-300",
-        isEventPast ? "opacity-60 grayscale-[0.5]" : "hover:border-primary/80 hover:shadow-primary/10 hover:-translate-y-1"
+        "group flex h-full flex-col overflow-hidden transition-all duration-300 border-2",
+        isEventPast 
+            ? "bg-card border-border/50" 
+            : "bg-amber-400 border-amber-500 shadow-lg shadow-amber-400/20 hover:-translate-y-1"
     )}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <CardTitle className={cn("font-headline text-xl", isEventPast ? "text-muted-foreground" : "text-foreground")}>
+          <CardTitle className={cn(
+            "font-headline text-xl", 
+            isEventPast ? "text-foreground" : "text-amber-950 font-black"
+          )}>
             {event.title}
           </CardTitle>
           <div className="flex flex-col items-end gap-1">
             <div className="flex flex-wrap justify-end gap-1">
                 {(event.types || []).map(type => (
-                    <Badge key={type} variant={isEventPast ? 'outline' : getBadgeVariant(type)} className="flex-shrink-0">
+                    <Badge key={type} variant={isEventPast ? 'outline' : 'secondary'} className={cn(
+                        "flex-shrink-0",
+                        !isEventPast && "bg-amber-950 text-amber-50 border-none"
+                    )}>
                         {type}
                     </Badge>
                 ))}
             </div>
             {isEventPast && (
-                <Badge variant="secondary" className="bg-muted text-muted-foreground border-none flex items-center gap-1">
+                <Badge variant="destructive" className="flex items-center gap-1 text-xs px-3 py-1 font-bold uppercase tracking-wider">
                     <History className="h-3 w-3" /> Past
                 </Badge>
             )}
           </div>
         </div>
-        <ClientDateTime dateTime={event.dateTime} formatStr="EEEE, MMMM do, yyyy" className={cn("pt-2", isEventPast ? "text-muted-foreground" : "text-primary/80")} tag="div" />
+        <ClientDateTime 
+            dateTime={event.dateTime} 
+            formatStr="EEEE, MMMM do, yyyy" 
+            className={cn("pt-2 font-semibold", isEventPast ? "text-primary/80" : "text-amber-900")} 
+            tag="div" 
+        />
       </CardHeader>
       <CardContent className="flex-grow">
-        <p className={cn("text-sm", isEventPast ? "text-muted-foreground/80" : "text-muted-foreground")}>{event.description}</p>
+        <p className={cn(
+            "text-sm font-medium", 
+            isEventPast ? "text-muted-foreground" : "text-amber-900/90"
+        )}>
+            {event.description}
+        </p>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4">
-        <div className="flex flex-col items-start gap-2 text-sm text-muted-foreground">
+        <div className={cn(
+            "flex flex-col items-start gap-2 text-sm",
+            isEventPast ? "text-muted-foreground" : "text-amber-950 font-bold"
+        )}>
             <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" />
-            <ClientDateTime dateTime={event.dateTime} formatStr="p" />
+            <Clock className={cn("h-4 w-4", isEventPast ? "text-primary" : "text-amber-950")} />
+            <ClientDateTime dateTime={event.dateTime} endTime={event.endTime} formatStr="p" />
             </div>
             <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-primary" />
+            <MapPin className={cn("h-4 w-4", isEventPast ? "text-primary" : "text-amber-950")} />
             <span>{event.location}</span>
             </div>
         </div>
         {canManage && (
-            <div className="w-full flex justify-end gap-2 border-t pt-4 mt-2">
+            <div className={cn(
+                "w-full flex justify-end gap-2 border-t pt-4 mt-2",
+                isEventPast ? "border-border/50" : "border-amber-900/20"
+            )}>
                 <AddEditEventDialog mode="edit" event={event}>
-                    <Button variant="ghost" size="icon"><Pencil className="h-4 w-4 text-muted-foreground" /></Button>
+                    <Button variant="ghost" size="icon" className={!isEventPast ? "hover:bg-amber-500/20 text-amber-950" : ""}>
+                        <Pencil className="h-4 w-4" />
+                    </Button>
                 </AddEditEventDialog>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <Button variant="ghost" size="icon" className={!isEventPast ? "hover:bg-red-500/20 text-red-900" : "text-destructive"}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
@@ -143,7 +183,6 @@ export default function EventsPage() {
   );
   const { data: events, isLoading } = useCollection<Event>(eventsQuery);
 
-  // Update "now" every minute to keep statuses fresh
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(interval);
@@ -159,16 +198,13 @@ export default function EventsPage() {
             isPast: isPast(new Date(event.dateTime))
         }))
         .sort((a, b) => {
-            // Sort by status and date: Upcoming first (ascending), then Past (descending)
             if (a.isPast && !b.isPast) return 1;
             if (!a.isPast && b.isPast) return -1;
             
             const dateA = new Date(a.dateTime).getTime();
             const dateB = new Date(b.dateTime).getTime();
             
-            // For upcoming: closer date first
             if (!a.isPast) return dateA - dateB;
-            // For past: most recent past event first
             return dateB - dateA;
         });
   }, [events, filter, now]);
@@ -186,7 +222,7 @@ export default function EventsPage() {
         </div>
         {canManage && (
             <AddEditEventDialog mode="add">
-                <Button size="lg">
+                <Button size="lg" className="bg-amber-400 text-amber-950 hover:bg-amber-500 font-bold border-2 border-amber-500">
                     <PlusCircle className="mr-2 h-5 w-5" />
                     Add Event
                 </Button>

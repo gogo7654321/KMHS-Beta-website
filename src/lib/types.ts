@@ -19,6 +19,7 @@ export type Event = {
   title: string;
   description: string;
   dateTime: string; // ISO string
+  endTime?: string; // HH:mm format
   location: string;
   types: EventType[];
   rsvpEnabled?: boolean;
