@@ -1,8 +1,9 @@
+
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User as UserIcon } from 'lucide-react';
+import { Menu, X, User as UserIcon, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -43,8 +44,11 @@ function UserNav() {
 
   if (!user) {
     return (
-      <Button asChild variant="ghost" className="font-semibold text-lg text-muted-foreground hover:text-primary">
-        <Link href="/login">Admin Portal</Link>
+      <Button asChild variant="default" size="sm" className="font-bold gap-2">
+        <Link href="/login">
+          <LogIn className="h-4 w-4" />
+          Log In
+        </Link>
       </Button>
     );
   }
@@ -142,7 +146,7 @@ export function Header() {
                       onClick={() => setMobileMenuOpen(false)}
                       className='text-xl font-medium transition-colors text-muted-foreground hover:text-primary'
                     >
-                      Admin Portal
+                      Log In
                     </Link>
                 </nav>
               </div>

@@ -341,7 +341,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.push('/login/admin');
     }
   }, [user, isUserLoading, router]);
 
@@ -403,7 +403,7 @@ export default function AdminPage() {
                     <div className="rounded-lg border bg-card p-6">
                         <h3 className="text-xl font-bold">Events</h3>
                         <p className="mt-2 text-muted-foreground">Manage club events.</p>
-                        <Button className="mt-4">Go to Events</Button>
+                        <Button className="mt-4" onClick={() => router.push('/events')}>Go to Events</Button>
                     </div>
                     <div className="rounded-lg border bg-card p-6">
                         <h3 className="text-xl font-bold">Members</h3>
@@ -417,7 +417,7 @@ export default function AdminPage() {
                         <p className="mt-2 text-muted-foreground">
                         Track and approve hours.
                         </p>
-                        <Button className="mt-4">Go to Service Hours</Button>
+                        <Button className="mt-4" onClick={() => router.push('/service-hours')}>Go to Service Hours</Button>
                     </div>
                     </div>
                 </div>
