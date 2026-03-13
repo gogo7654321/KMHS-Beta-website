@@ -33,11 +33,14 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Allow list if the user is an admin (view all) or if they are querying their own hours.
-      // Note: Firestore rules for list require the query to be filtered appropriately.
-      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && request.auth.uid == resource.data.memberId);
+      // Allow list and get if the user is an admin or if they are access their own hours.
+      allow list: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      
+      // Allow creation if the user is logged in and setting themselves as the member.
       allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
+      
+      // Updates and deletions are reserved for leadership review/cleanup.
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }

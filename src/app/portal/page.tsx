@@ -21,26 +21,32 @@ export default function MemberPortalPage() {
   const firestore = useFirestore();
   const router = useRouter();
 
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
+
   // Check for member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
   const { data: memberData, isLoading: isMemberLoading } = useDoc<Member>(memberDocRef);
 
-  // Check for admin profile (admins are also members but might not have a member doc yet)
+  // Check for admin profile
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
   const hoursQuery = useMemoFirebase(() => {
-    // ONLY run the query if we have a user and we've confirmed they are either a member or an admin.
-    // This avoids "Missing or insufficient permissions" errors on initial load for super admins
-    // who might not have a member record yet.
-    if (!user || (!memberData && !adminData && !isMemberLoading && !isAdminLoading)) return null;
+    if (!user) return null;
+    
+    // Only run query if profile is loaded or user is super admin (who has immediate access)
+    const canQuery = isSuperAdmin || memberData || adminData;
+    const stillLoading = isMemberLoading || isAdminLoading;
+    
+    if (!canQuery && !stillLoading) return null;
+    if (stillLoading) return null;
     
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user, memberData, adminData, isMemberLoading, isAdminLoading]);
+  }, [firestore, user, memberData, adminData, isMemberLoading, isAdminLoading, isSuperAdmin]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 
@@ -50,7 +56,7 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || isMemberLoading || isAdminLoading || isHoursLoading) {
+  if (isUserLoading || isMemberLoading || isAdminLoading || (hoursQuery && isHoursLoading)) {
     return (
       <div className="container mx-auto py-12 px-4">
         <div className="space-y-8">
@@ -68,14 +74,14 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
-  // If the user is an admin but doesn't have a member profile, they might need to create one
-  if (!memberData && adminData) {
+  // If the user is an admin but doesn't have a member profile
+  if (!memberData && (adminData || isSuperAdmin)) {
     return (
       <div className="container mx-auto py-12 px-4 flex flex-col items-center justify-center text-center">
         <ShieldAlert className="h-16 w-16 text-primary mb-6" />
-        <h1 className="text-3xl font-bold">Admin Account Detected</h1>
+        <h1 className="text-3xl font-bold">Leadership Account Detected</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
-          You are logged in as an administrator ({adminData.position}). To access the member portal features like service hour tracking, you must also have a member profile.
+          You are logged in as {isSuperAdmin ? 'the Super Admin' : `an administrator (${adminData?.position})`}. To access the member portal features like service hour tracking, you must also have a member profile.
         </p>
         <div className="mt-8 flex gap-4">
             <Button asChild variant="outline">
