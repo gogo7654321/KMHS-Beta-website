@@ -8,6 +8,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Absolute Super Admin Check
     function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'npatel012010@gmail.com' ||
@@ -15,12 +16,13 @@ service cloud.firestore {
       );
     }
     
+    // Admin Check (includes Super Admin)
     function isAdmin() {
       return isSuperAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid)));
     }
 
     // --- Global Super Admin Bypass ---
-    // This provides absolute root-level access for the designated super admin.
+    // This provides absolute root-level access.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -38,9 +40,14 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Admins and Super Admins have unrestricted access via global bypass or isAdmin check.
-      // List operations are implicitly allowed for members if the query filters for their own memberId.
-      allow read: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      // Allow single document reads for admins or the owner
+      allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      
+      // Allow listing if the user is an admin OR if they are querying their own data
+      // Splitting these ensures the query engine doesn't get confused by the || logic
+      allow list: if isAdmin();
+      allow list: if isSignedIn() && request.query.limit <= 100 && resource.data.memberId == request.auth.uid;
+      
       allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
