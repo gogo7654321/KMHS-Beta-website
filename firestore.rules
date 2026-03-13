@@ -23,7 +23,7 @@ service cloud.firestore {
     }
 
     // --- GLOBAL SUPER ADMIN BYPASS ---
-    // This MUST come first and apply to all documents to prevent permission errors for the owner.
+    // Higher level bypass to ensure unrestricted access
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -41,18 +41,13 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Admins and Super Admins can list and manage everything
-      allow list, get, write: if isAdmin();
+      // Admins and Super Admins have full access
+      allow read, write: if isAdmin();
       
-      // Members can list and get their own hours
-      // Firestore requires the query to filter by memberId for this to pass
-      allow list: if isSignedIn() && resource.data.memberId == request.auth.uid;
-      allow get: if isSignedIn() && resource.data.memberId == request.auth.uid;
-      
-      // Members can create their own logs
+      // Members can read and manage their own logs
+      // Note: List operations must be filtered by memberId on the client for this to pass
+      allow list, get: if isSignedIn() && resource.data.memberId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
-      
-      // Members can update/delete their own pending logs
       allow update, delete: if isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending';
     }
 

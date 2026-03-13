@@ -42,8 +42,10 @@ export default function MemberPortalPage() {
   // Strictly guard the service hours query. 
   // We use the memberData presence as a trigger to ensure the rules pass.
   const hoursQuery = useMemoFirebase(() => {
+    // We only list if we have a confirmed member profile to prevent rule rejections
     if (!user || isMemberLoading || !memberData) return null;
     
+    // Filtering by memberId is required for standard member security rules to pass
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
@@ -59,6 +61,8 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
+  const generateMemberId = () => Math.floor(10000 + Math.random() * 90000).toString();
+
   const handleCreateMemberFromAdmin = async () => {
     if (!user) return;
     setIsCreatingProfile(true);
@@ -66,8 +70,10 @@ export default function MemberPortalPage() {
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
       
+      // Creating a completely new member account from leadership data
       const newMemberData: Member = {
         id: user.uid,
+        memberId: generateMemberId(),
         firstName: adminData?.firstName || user.displayName?.split(' ')[0] || 'User',
         lastName: adminData?.lastName || user.displayName?.split(' ')[1] || 'Name',
         email: user.email || '',
@@ -78,14 +84,14 @@ export default function MemberPortalPage() {
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
       
       toast({
-        title: "Profile Initialized",
-        description: "Your leadership profile has been synced to your member dashboard.",
+        title: "Profile Created",
+        description: "A new member profile has been created for your leadership account.",
       });
       
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Sync Failed",
+        title: "Profile Creation Failed",
         description: error.message || "Failed to create member profile.",
       });
     } finally {
@@ -111,21 +117,22 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
+  // If the user is an admin (or super admin) but doesn't have a member profile yet
   if (!memberData && (adminData || isSuperAdmin)) {
     return (
       <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
         <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-pulse" />
-        <h1 className="text-3xl font-bold font-headline">Initialize Member Profile</h1>
+        <h1 className="text-3xl font-bold font-headline">Initialize Member Dashboard</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
           You are signed in as {isSuperAdmin ? 'the Super Admin' : `a club officer (${adminData?.position})`}. 
-          To view your dashboard and log hours, we will initialize your member profile from your leadership data.
+          To view your dashboard and log hours, we will create a dedicated member account for you.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} size="lg" className="font-bold text-lg px-8">
                 {isCreatingProfile ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Syncing...
+                    Creating Profile...
                   </>
                 ) : (
                   'Create Member Profile'
@@ -163,7 +170,7 @@ export default function MemberPortalPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold">Welcome, {memberData.firstName}</h1>
-          <p className="text-muted-foreground">KMHS Beta Club Member Portal</p>
+          <p className="text-muted-foreground">KMHS Beta Club Member Portal • ID: #{memberData.memberId}</p>
         </div>
         <div className="flex gap-2">
             {isAdmin && (
@@ -269,4 +276,14 @@ export default function MemberPortalPage() {
       </Card>
     </div>
   );
+}
+
+function ShieldAlert({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+            <path d="M12 8v4"/>
+            <path d="M12 16h.01"/>
+        </svg>
+    );
 }

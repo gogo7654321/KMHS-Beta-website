@@ -60,6 +60,8 @@ export default function MemberSignupPage() {
     },
   });
 
+  const generateMemberId = () => Math.floor(10000 + Math.random() * 90000).toString();
+
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     try {
@@ -70,6 +72,7 @@ export default function MemberSignupPage() {
         const memberDocRef = doc(firestore, 'members', user.uid);
         const memberData = {
           id: user.uid,
+          memberId: generateMemberId(),
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,

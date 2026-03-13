@@ -115,6 +115,10 @@
           "type": "string",
           "description": "Unique identifier for the member (UID)."
         },
+        "memberId": {
+          "type": "string",
+          "description": "Random 5-digit member identifier."
+        },
         "firstName": {
           "type": "string"
         },
@@ -135,6 +139,7 @@
       },
       "required": [
         "id",
+        "memberId",
         "firstName",
         "lastName",
         "grade",
@@ -162,6 +167,9 @@
         },
         "position": {
           "type": "string"
+        },
+        "grade": {
+          "type": "number"
         }
       }
     }

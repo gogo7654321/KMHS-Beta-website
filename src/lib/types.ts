@@ -26,7 +26,8 @@ export type Event = {
 };
 
 export type Member = {
-  id: string;
+  id: string; // UID
+  memberId: string; // Random 5-digit identifier
   firstName: string;
   lastName: string;
   grade: number;
