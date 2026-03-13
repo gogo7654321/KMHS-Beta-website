@@ -23,6 +23,7 @@ service cloud.firestore {
     }
 
     // --- Global Super Admin Bypass ---
+    // This match block ensures the Super Admin has root-level access to everything.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -40,21 +41,18 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Priority 1: Super Admin / Admin access
-      allow read: if isAdmin();
+      // Admins and Super Admins can do anything
+      allow read, write: if isAdmin();
       
-      // Priority 2: Member access (specific document read)
-      allow get: if isSignedIn() && resource.data.memberId == request.auth.uid;
+      // Members can read their own documents and list their own data
+      allow get, list: if isSignedIn() && resource.data.memberId == request.auth.uid;
       
-      // Priority 3: Member list access
-      // Note: We use query.limit if the client requests it, but the core check is memberId ownership.
-      allow list: if isSignedIn() && resource.data.memberId == request.auth.uid;
-      
+      // Members can create their own logs
       allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
-      allow update, delete: if isAdmin();
     }
 
     match /events/{eventId} {
+      // Events are public for reading
       allow read: if true;
       allow write: if isAdmin();
     }

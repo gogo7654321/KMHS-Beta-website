@@ -153,7 +153,9 @@ export default function MemberSignupPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email <span className="text-xs font-normal text-muted-foreground">(do not use school email)</span></FormLabel>
+                    <FormLabel>
+                      Email <span className="text-xs font-normal text-muted-foreground">(do not use school email)</span>
+                    </FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="student@kmhs.com" {...field} />
                     </FormControl>

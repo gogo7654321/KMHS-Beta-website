@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { Event, EventType, Admin } from '@/lib/types';
-import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History, Share2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History, Share2, Copy } from 'lucide-react';
 import { format, isPast, parse } from 'date-fns';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
@@ -16,6 +16,7 @@ import { AddEditEventDialog } from '@/components/events/add-edit-event-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const eventTypes: ['All', ...EventType[]] = ['All', 'Meeting', 'Service', 'Fundraiser', 'Social'];
 
@@ -161,6 +162,7 @@ export default function EventsPage() {
 
   const firestore = useFirestore();
   const { user } = useUser();
+  const { toast } = useToast();
   
   const adminDocRef = useMemoFirebase(() => (user ? doc(firestore, 'admin', user.uid) : null), [firestore, user]);
   const { data: adminData } = useDoc<Admin>(adminDocRef);
@@ -199,8 +201,18 @@ export default function EventsPage() {
         });
   }, [events, filter, now]);
 
+  const handleCopyFeedUrl = () => {
+    const feedUrl = `${window.location.origin}/api/events/feed`;
+    navigator.clipboard.writeText(feedUrl);
+    toast({
+        title: "URL Copied!",
+        description: "Add this link as a 'Subscription' or 'From URL' in your calendar app.",
+    });
+  };
+
   const handleSubscribe = () => {
-    window.open('/api/events/feed', '_blank');
+    const feedUrl = `${window.location.origin}/api/events/feed`.replace(/^https?:\/\//, 'webcal://');
+    window.location.href = feedUrl;
   };
 
   return (
@@ -215,10 +227,32 @@ export default function EventsPage() {
             </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button variant="outline" size="lg" onClick={handleSubscribe} className="gap-2">
-                <Share2 className="h-5 w-5" />
-                Subscribe to Calendar
-            </Button>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" size="lg" className="gap-2">
+                        <Share2 className="h-5 w-5" />
+                        Subscribe to Calendar
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 space-y-4">
+                    <div className="space-y-2">
+                        <h4 className="font-bold leading-none">Calendar Sync</h4>
+                        <p className="text-sm text-muted-foreground">
+                            Automatically sync KMHS Beta events to your personal calendar.
+                        </p>
+                    </div>
+                    <div className="grid gap-2">
+                        <Button onClick={handleSubscribe} className="w-full font-bold">
+                            Sync with Device
+                        </Button>
+                        <Button variant="outline" onClick={handleCopyFeedUrl} className="w-full gap-2">
+                            <Copy className="h-4 w-4" />
+                            Copy Feed URL
+                        </Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+
             {canManage && (
                 <AddEditEventDialog mode="add">
                     <Button size="lg" className="bg-amber-400 text-amber-950 hover:bg-amber-500 font-bold border-2 border-amber-500">
