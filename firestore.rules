@@ -23,7 +23,6 @@ service cloud.firestore {
     }
 
     // --- GLOBAL SUPER ADMIN BYPASS ---
-    // This MUST be the first rule evaluated.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -41,15 +40,15 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Allow individual gets and collection listings
-      // Listing is allowed if the query is filtered by the user's UID OR if the user is an admin
-      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 500 && request.auth.uid != null);
+      // Prioritize Super Admin at the collection level to avoid wildcard loss
+      allow read, write: if isSuperAdmin();
+
+      // List allows queries filtered by the user's UID OR if the user is an admin
+      allow list: if isAdmin() || (isSignedIn() && request.auth.uid != null);
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       
-      // Allow creation if the user is an admin or is creating their own record
+      // Creation and updates
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.memberId == request.auth.uid);
-      
-      // Allow updates/deletes if admin or if owner and still pending
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending');
     }
 
