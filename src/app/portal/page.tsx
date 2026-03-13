@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
@@ -26,7 +25,7 @@ export default function MemberPortalPage() {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   // Determine if viewer is Super Admin
-  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
 
   // Check for existing member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
@@ -39,6 +38,7 @@ export default function MemberPortalPage() {
   // Strictly guard the service hours query. 
   // It MUST NOT run if the member profile does not exist yet to prevent permission errors.
   const hoursQuery = useMemoFirebase(() => {
+    // Only fetch if we have a user AND a confirmed member profile.
     if (!user || isMemberLoading || !memberData) return null;
     
     return query(
