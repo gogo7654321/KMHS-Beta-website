@@ -36,6 +36,9 @@ export default function MemberPortalPage() {
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
+  // Helper for conditional UI
+  const isAdmin = !!adminData || isSuperAdmin;
+
   // Strictly guard the service hours query. 
   const hoursQuery = useMemoFirebase(() => {
     if (!user || isMemberLoading || !memberData) return null;

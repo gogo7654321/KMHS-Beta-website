@@ -9,7 +9,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Absolute Super Admin Check (Global Bypass)
+    // Absolute Super Admin Check
     function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'npatel012010@gmail.com' ||
@@ -23,7 +23,6 @@ service cloud.firestore {
     }
 
     // --- Global Super Admin Bypass ---
-    // This allows the super admin to bypass all collection-level rules.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -31,33 +30,27 @@ service cloud.firestore {
     // --- Collection Specific Rules ---
 
     match /admin/{userId} {
-      // Anyone signed in can view leadership profiles for the Leadership page.
       allow read: if isSignedIn();
-      // Only the user themselves or the super admin can edit an admin profile.
       allow write: if isSuperAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /members/{userId} {
-      // Admins can see all member details. Members can see their own.
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
-      // Members can create/edit their own profiles; Admins have full control.
       allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /service-hours/{hourId} {
-      // Admins can list and manage all service hours.
+      // Prioritize Super Admin and Admin access for listing
       allow read, write: if isAdmin();
       
-      // Members can list their own hours (requires query filter matching uid).
+      // Members can list their own hours
       allow list: if isSignedIn() && (isAdmin() || resource.data.memberId == request.auth.uid);
-      
-      // Members can get their own specific documents.
       allow get: if isSignedIn() && (isAdmin() || resource.data.memberId == request.auth.uid);
       
-      // Members can create their own logs.
+      // Members can create their own logs
       allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
       
-      // Members can update/delete their own pending logs.
+      // Members can update/delete their own pending logs
       allow update, delete: if isSignedIn() && (isAdmin() || (resource.data.memberId == request.auth.uid && resource.data.status == 'pending'));
     }
 
