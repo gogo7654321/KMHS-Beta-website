@@ -3,23 +3,27 @@
 
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import type { Member, ServiceHour, Admin } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
+import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MemberPortalPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
 
@@ -31,24 +35,16 @@ export default function MemberPortalPage() {
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
-  // Only query hours if we have a valid user and they have a member profile (or are super admin)
+  // Only query hours if we have a valid user and they have a member profile
   const hoursQuery = useMemoFirebase(() => {
-    if (!user || isMemberLoading || isAdminLoading) return null;
+    if (!user || isMemberLoading || !memberData) return null;
     
-    // We only want to run this query if the user has a member profile.
-    // Super admins without member profiles shouldn't trigger this list query as it might hit permission errors 
-    // if the resource.data filter doesn't match a document.
-    if (!memberData && !isSuperAdmin) return null;
-    
-    // If it's a super admin without a member profile, we'll still skip the query to avoid errors
-    if (!memberData) return null;
-
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user, memberData, isMemberLoading, isAdminLoading, isSuperAdmin]);
+  }, [firestore, user, memberData, isMemberLoading]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 
@@ -57,6 +53,41 @@ export default function MemberPortalPage() {
       router.push('/login/member');
     }
   }, [user, isUserLoading, router]);
+
+  const handleCreateMemberFromAdmin = async () => {
+    if (!user) return;
+    setIsCreatingProfile(true);
+
+    try {
+      const memberDocRef = doc(firestore, 'members', user.uid);
+      
+      // Use existing admin data if available, otherwise fallback to user info
+      const newMemberData: Member = {
+        id: user.uid,
+        firstName: adminData?.firstName || user.displayName?.split(' ')[0] || 'Admin',
+        lastName: adminData?.lastName || user.displayName?.split(' ')[1] || 'User',
+        email: user.email || '',
+        grade: adminData?.grade || 12,
+        totalHours: 0,
+      };
+
+      setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
+      
+      toast({
+        title: "Member Profile Created",
+        description: "Your administrative data has been used to set up your membership.",
+      });
+      
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Creation Failed",
+        description: error.message || "Failed to create member profile.",
+      });
+    } finally {
+      setIsCreatingProfile(false);
+    }
+  };
 
   if (isUserLoading || isMemberLoading || isAdminLoading || (hoursQuery && isHoursLoading)) {
     return (
@@ -83,14 +114,21 @@ export default function MemberPortalPage() {
         <ShieldAlert className="h-16 w-16 text-primary mb-6" />
         <h1 className="text-3xl font-bold">Leadership Account Detected</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
-          You are logged in as {isSuperAdmin ? 'the Super Admin' : `an administrator (${adminData?.position})`}. To access the member portal features like service hour tracking, you must also have a member profile.
+          You are logged in as {isSuperAdmin ? 'the Super Admin' : `an administrator (${adminData?.position})`}. To use member features, we'll sync your details to a member profile.
         </p>
         <div className="mt-8 flex gap-4">
-            <Button asChild variant="outline">
+            <Button variant="outline" asChild>
                 <Link href="/admin">Go to Admin Portal</Link>
             </Button>
-            <Button asChild>
-                <Link href="/signup/member">Create Member Profile</Link>
+            <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} className="font-bold">
+                {isCreatingProfile ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing Profile...
+                  </>
+                ) : (
+                  'Create Member Profile'
+                )}
             </Button>
         </div>
       </div>

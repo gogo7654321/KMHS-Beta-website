@@ -39,8 +39,7 @@ service cloud.firestore {
 
     match /service-hours/{hourId} {
       // Allow list and get if the user is an admin or if they are access their own hours.
-      // Note: for list, resource.data is only available if the query is filtered by memberId.
-      allow list: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow list: if isAdmin() || (isSignedIn() && request.query.filters.size() > 0 && request.query.filters[0].field == 'memberId' && request.query.filters[0].op == '==' && request.query.filters[0].value == request.auth.uid);
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       
       // Allow creation if the user is logged in and setting themselves as the member.

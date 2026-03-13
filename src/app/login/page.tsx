@@ -4,23 +4,34 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Shield, ArrowRight } from 'lucide-react';
+import { doc } from 'firebase/firestore';
+import type { Admin } from '@/lib/types';
 
 export default function LoginSelectionPage() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      // In a real app we'd check roles, but for now we default to portal
-      router.push('/portal');
-    }
-  }, [user, router]);
+  const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
+  const { data: adminData } = useDoc<Admin>(adminDocRef);
 
-  if (isUserLoading || user) {
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      const isSuperAdmin = user.email === 'npatel012010@gmail.com';
+      // If they are an admin, default them to the admin portal
+      if (adminData || isSuperAdmin) {
+        router.push('/admin');
+      } else {
+        router.push('/portal');
+      }
+    }
+  }, [user, isUserLoading, adminData, router]);
+
+  if (isUserLoading) {
     return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
   }
 
