@@ -19,7 +19,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Explicitly allow Super Admin full access to everything
+    // Explicitly allow Super Admin full access to everything as a root rule
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -38,14 +38,17 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Allow list and get if the user is an admin or if they are access their own hours.
+      // Allow listing:
+      // 1. If the user is an admin or super admin.
+      // 2. If a member is querying ONLY their own hours (filtered by memberId == auth.uid).
       allow list: if isAdmin() || (isSignedIn() && request.query.filters.size() > 0 && request.query.filters[0].field == 'memberId' && request.query.filters[0].op == '==' && request.query.filters[0].value == request.auth.uid);
+      
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       
-      // Allow creation if the user is logged in and setting themselves as the member.
+      // Allow creation if the user is setting themselves as the owner of the record.
       allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
       
-      // Updates and deletions are reserved for leadership review/cleanup.
+      // Updates and deletions are reserved for leadership review or cleanup.
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }

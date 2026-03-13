@@ -25,17 +25,19 @@ export default function MemberPortalPage() {
   const { toast } = useToast();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
+  // Determine if viewer is Super Admin
   const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
 
-  // Check for member profile
+  // Check for existing member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
   const { data: memberData, isLoading: isMemberLoading } = useDoc<Member>(memberDocRef);
 
-  // Check for admin profile
+  // Check for admin profile (Leadership data)
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
-  // Only query hours if we have a valid user and they have a member profile
+  // Strictly guard the service hours query. 
+  // It MUST NOT run if the member profile does not exist yet to prevent permission errors.
   const hoursQuery = useMemoFirebase(() => {
     if (!user || isMemberLoading || !memberData) return null;
     
@@ -54,6 +56,10 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
+  /**
+   * handleCreateMemberFromAdmin
+   * Syncs existing leadership data into a member profile.
+   */
   const handleCreateMemberFromAdmin = async () => {
     if (!user) return;
     setIsCreatingProfile(true);
@@ -61,27 +67,28 @@ export default function MemberPortalPage() {
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
       
-      // Use existing admin data if available, otherwise fallback to user info
+      // Map leadership (admin) data to member data
       const newMemberData: Member = {
         id: user.uid,
         firstName: adminData?.firstName || user.displayName?.split(' ')[0] || 'Admin',
         lastName: adminData?.lastName || user.displayName?.split(' ')[1] || 'User',
         email: user.email || '',
-        grade: adminData?.grade || 12,
+        grade: adminData?.grade || 12, // Default to senior if unknown
         totalHours: 0,
       };
 
+      // Set the document in Firestore
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
       
       toast({
-        title: "Member Profile Created",
-        description: "Your administrative data has been used to set up your membership.",
+        title: "Profile Synced",
+        description: "Your leadership details have been used to create your member profile.",
       });
       
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Creation Failed",
+        title: "Sync Failed",
         description: error.message || "Failed to create member profile.",
       });
     } finally {
@@ -107,28 +114,29 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
-  // If the user is an admin but doesn't have a member profile
+  // If the user is an admin (or super admin) but doesn't have a member profile yet
   if (!memberData && (adminData || isSuperAdmin)) {
     return (
-      <div className="container mx-auto py-12 px-4 flex flex-col items-center justify-center text-center">
-        <ShieldAlert className="h-16 w-16 text-primary mb-6" />
-        <h1 className="text-3xl font-bold">Leadership Account Detected</h1>
+      <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
+        <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-pulse" />
+        <h1 className="text-3xl font-bold font-headline">Leadership Account Detected</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
-          You are logged in as {isSuperAdmin ? 'the Super Admin' : `an administrator (${adminData?.position})`}. To use member features, we'll sync your details to a member profile.
+          You are currently signed in as {isSuperAdmin ? 'the Super Admin' : `a club officer (${adminData?.position})`}. 
+          To view your personal dashboard and log hours, we need to initialize your member profile.
         </p>
-        <div className="mt-8 flex gap-4">
-            <Button variant="outline" asChild>
-                <Link href="/admin">Go to Admin Portal</Link>
-            </Button>
-            <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} className="font-bold">
+        <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} size="lg" className="font-bold text-lg px-8">
                 {isCreatingProfile ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Syncing Profile...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Initializing...
                   </>
                 ) : (
                   'Create Member Profile'
                 )}
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+                <Link href="/admin">Go to Admin Portal</Link>
             </Button>
         </div>
       </div>
@@ -137,11 +145,11 @@ export default function MemberPortalPage() {
 
   if (!memberData) {
       return (
-        <div className="container mx-auto py-12 px-4 text-center">
+        <div className="container mx-auto py-24 px-4 text-center">
             <h1 className="text-2xl font-bold">Profile Not Found</h1>
             <p className="mt-2 text-muted-foreground">We couldn't find a member profile associated with this account.</p>
             <Button asChild className="mt-6">
-                <Link href="/signup/member">Complete Registration</Link>
+                <Link href="/signup/member">Register Now</Link>
             </Button>
         </div>
       );
@@ -151,7 +159,7 @@ export default function MemberPortalPage() {
     ? serviceHours.filter(h => h.status === 'approved').reduce((acc, h) => acc + h.hours, 0)
     : 0;
 
-  const annualGoal = 30; // From bylaws
+  const annualGoal = 30; // Defined by KMHS Beta Bylaws
   const progressPercent = Math.min((totalApprovedHours / annualGoal) * 100, 100);
 
   return (
@@ -161,22 +169,29 @@ export default function MemberPortalPage() {
           <h1 className="font-headline text-4xl font-bold">Welcome, {memberData.firstName}</h1>
           <p className="text-muted-foreground">KMHS Beta Club Member Portal</p>
         </div>
-        <Button asChild className="font-bold">
-          <Link href="/portal/log-hours">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Log Service Hours
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+            {isSuperAdmin && (
+                <Button variant="outline" asChild>
+                    <Link href="/admin">Admin View</Link>
+                </Button>
+            )}
+            <Button asChild className="font-bold">
+                <Link href="/portal/log-hours">
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Log Service Hours
+                </Link>
+            </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-2 border-primary/20 bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved Hours</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Approved Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalApprovedHours} / {annualGoal}</div>
+            <div className="text-3xl font-bold">{totalApprovedHours} <span className="text-sm font-normal text-muted-foreground">/ {annualGoal}</span></div>
             <p className="text-xs text-muted-foreground mt-1">Annual Goal Progress</p>
             <Progress value={progressPercent} className="mt-3 h-2" />
           </CardContent>
@@ -184,36 +199,36 @@ export default function MemberPortalPage() {
 
         <Card className="bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Pending Review</CardTitle>
             <AlertCircle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold">
               {serviceHours?.filter(h => h.status === 'pending').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Logs waiting for leadership review</p>
+            <p className="text-xs text-muted-foreground mt-1">Logs waiting for approval</p>
           </CardContent>
         </Card>
 
         <Card className="bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Member Status</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Member Status</CardTitle>
             <Award className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">In Good Standing</div>
-            <p className="text-xs text-muted-foreground mt-1">Grade {memberData.grade} Member</p>
+            <div className="text-3xl font-bold text-primary">Active</div>
+            <p className="text-xs text-muted-foreground mt-1">Grade {memberData.grade} • {isSuperAdmin ? 'Super Admin' : (adminData ? 'Officer' : 'Member')}</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-border/60">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-headline">
             <History className="h-5 w-5 text-primary" />
             Service History
           </CardTitle>
-          <CardDescription>Your logged volunteer activities and their status.</CardDescription>
+          <CardDescription>View all your volunteer contributions and their verification status.</CardDescription>
         </CardHeader>
         <CardContent>
           {serviceHours && serviceHours.length > 0 ? (
@@ -223,23 +238,23 @@ export default function MemberPortalPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Event/Activity</TableHead>
                   <TableHead>Hours</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {serviceHours.map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell>{log.date ? format(new Date(log.date), 'MMM d, yyyy') : 'N/A'}</TableCell>
-                    <TableCell className="font-medium">{log.eventName}</TableCell>
+                    <TableCell className="text-muted-foreground">{log.date ? format(new Date(log.date), 'MMM d, yyyy') : 'N/A'}</TableCell>
+                    <TableCell className="font-semibold">{log.eventName}</TableCell>
                     <TableCell>{log.hours}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       <Badge variant={
                         log.status === 'approved' ? 'default' : 
                         log.status === 'pending' ? 'outline' : 'destructive'
-                      } className="gap-1">
+                      } className="gap-1 capitalize">
                         {log.status === 'approved' && <CheckCircle2 className="h-3 w-3" />}
-                        {log.status === 'pending' && <Clock className="h-3 w-3" />}
-                        {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
+                        {log.status === 'pending' && <Clock className="h-3 w-3 animate-pulse" />}
+                        {log.status}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -247,10 +262,10 @@ export default function MemberPortalPage() {
               </TableBody>
             </Table>
           ) : (
-            <div className="text-center py-12 border-2 border-dashed rounded-lg bg-secondary/5">
-              <p className="text-muted-foreground">No service hours logged yet.</p>
+            <div className="text-center py-20 border-2 border-dashed rounded-lg bg-secondary/5">
+              <p className="text-muted-foreground text-lg">No service hours found.</p>
               <Button asChild variant="outline" className="mt-4">
-                <Link href="/portal/log-hours">Log Your First Hour</Link>
+                <Link href="/portal/log-hours">Submit Your First Log</Link>
               </Button>
             </div>
           )}

@@ -1,40 +1,19 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Shield, ArrowRight } from 'lucide-react';
-import { doc } from 'firebase/firestore';
-import type { Admin } from '@/lib/types';
 
+/**
+ * LoginSelectionPage
+ * Now acts as a pure selection screen. Redirection is handled by the specific 
+ * login pages (/login/member and /login/admin) to ensure the user lands 
+ * in the intended portal regardless of their roles.
+ */
 export default function LoginSelectionPage() {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
-  const router = useRouter();
-
-  const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
-  const { data: adminData } = useDoc<Admin>(adminDocRef);
-
-  useEffect(() => {
-    if (user && !isUserLoading) {
-      const isSuperAdmin = user.email === 'npatel012010@gmail.com';
-      // If they are an admin, default them to the admin portal
-      if (adminData || isSuperAdmin) {
-        router.push('/admin');
-      } else {
-        router.push('/portal');
-      }
-    }
-  }, [user, isUserLoading, adminData, router]);
-
-  if (isUserLoading) {
-    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
-  }
-
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center bg-background px-4 py-12">
       <div className="mb-12 text-center">
