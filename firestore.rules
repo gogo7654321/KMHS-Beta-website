@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -24,7 +25,6 @@ service cloud.firestore {
     }
 
     // --- Global Super Admin Bypass ---
-    // This rule provides a absolute fallback for the super admin across all documents.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -46,15 +46,14 @@ service cloud.firestore {
 
     match /service-hours/{hourId} {
       // Listing rules:
-      // 1. Super admins and Admins can list everything.
-      // 2. Members can list their own hours by filtering on memberId.
-      allow list: if isSignedIn() && (
-        isSuperAdmin() || 
-        isAdmin() || 
-        (request.query.filters.size() > 0 && 
-         request.query.filters[0].field == 'memberId' && 
-         request.query.filters[0].op == '==' && 
-         request.query.filters[0].value == request.auth.uid)
+      // Super admins and Admins have full list access.
+      // Members can list their own hours by filtering on memberId.
+      allow list: if isSuperAdmin() || isAdmin() || (
+        isSignedIn() && 
+        request.query.filters.size() > 0 && 
+        request.query.filters[0].field == 'memberId' && 
+        request.query.filters[0].op == '==' && 
+        request.query.filters[0].value == request.auth.uid
       );
       
       allow get: if isSuperAdmin() || isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
@@ -68,23 +67,23 @@ service cloud.firestore {
 
     match /events/{eventId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin();
+      allow write: if isAdmin();
     }
 
     match /siteContent/{docId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin();
+      allow write: if isAdmin();
     }
 
     match /photos/{photoId} {
       allow read: if true;
-      allow write: if isSuperAdmin() || isAdmin();
+      allow write: if isAdmin();
     }
 
-    // Default catch-all for any newly created collections
+    // Default catch-all for any other collections
     match /{document=**} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || isAdmin();
+      allow write: if isAdmin();
     }
   }
 }
