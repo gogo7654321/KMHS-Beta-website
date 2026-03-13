@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
@@ -42,7 +41,6 @@ export default function MemberPortalPage() {
   // Protected query: Only run if we have a user AND a confirmed member profile to avoid permission ghosts
   const hoursQuery = useMemoFirebase(() => {
     // SECURITY CRITICAL: This query MUST be filtered by memberId to match common member-level security rules.
-    // Even for Super Admins, a filtered query is safer and avoids rule evaluation complexities.
     if (!user || isMemberLoading || !memberData) return null;
     
     return query(
@@ -70,7 +68,6 @@ export default function MemberPortalPage() {
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
       
-      // Creating a clean, new member document using leadership data as source
       const newMemberData: Member = {
         id: user.uid,
         memberId: generateMemberId(),
@@ -81,7 +78,6 @@ export default function MemberPortalPage() {
         totalHours: 0,
       };
 
-      // Set clean document
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
       
       toast({
@@ -118,7 +114,6 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
-  // Handle case where an Officer/Admin needs a member profile
   if (!memberData && isAdmin) {
     return (
       <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
