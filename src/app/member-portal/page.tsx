@@ -40,6 +40,7 @@ export default function MemberPortalPage() {
   const isAdmin = !!adminData || isSuperAdmin;
 
   // Strictly guard the service hours query. 
+  // We use the memberData presence as a trigger to ensure the rules pass.
   const hoursQuery = useMemoFirebase(() => {
     if (!user || isMemberLoading || !memberData) return null;
     

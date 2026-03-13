@@ -22,7 +22,8 @@ service cloud.firestore {
       return isSuperAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid)));
     }
 
-    // --- Global Super Admin Bypass ---
+    // --- GLOBAL SUPER ADMIN BYPASS ---
+    // This MUST come first and apply to all documents to prevent permission errors for the owner.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -40,18 +41,19 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Prioritize Super Admin and Admin access for listing
-      allow read, write: if isAdmin();
+      // Admins and Super Admins can list and manage everything
+      allow list, get, write: if isAdmin();
       
-      // Members can list their own hours
-      allow list: if isSignedIn() && (isAdmin() || resource.data.memberId == request.auth.uid);
-      allow get: if isSignedIn() && (isAdmin() || resource.data.memberId == request.auth.uid);
+      // Members can list and get their own hours
+      // Firestore requires the query to filter by memberId for this to pass
+      allow list: if isSignedIn() && resource.data.memberId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.memberId == request.auth.uid;
       
       // Members can create their own logs
-      allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
       
       // Members can update/delete their own pending logs
-      allow update, delete: if isSignedIn() && (isAdmin() || (resource.data.memberId == request.auth.uid && resource.data.status == 'pending'));
+      allow update, delete: if isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending';
     }
 
     match /events/{eventId} {
@@ -69,7 +71,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Default catch-all
+    // Default catch-all for any missed collections
     match /{document=**} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
