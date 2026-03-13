@@ -31,22 +31,24 @@ export default function MemberPortalPage() {
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
+  // Only query hours if we have a valid user and they have a member profile (or are super admin)
   const hoursQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isMemberLoading || isAdminLoading) return null;
     
-    // Only run query if profile is loaded or user is super admin (who has immediate access)
-    const canQuery = isSuperAdmin || memberData || adminData;
-    const stillLoading = isMemberLoading || isAdminLoading;
+    // We only want to run this query if the user has a member profile.
+    // Super admins without member profiles shouldn't trigger this list query as it might hit permission errors 
+    // if the resource.data filter doesn't match a document.
+    if (!memberData && !isSuperAdmin) return null;
     
-    if (!canQuery && !stillLoading) return null;
-    if (stillLoading) return null;
-    
+    // If it's a super admin without a member profile, we'll still skip the query to avoid errors
+    if (!memberData) return null;
+
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user, memberData, adminData, isMemberLoading, isAdminLoading, isSuperAdmin]);
+  }, [firestore, user, memberData, isMemberLoading, isAdminLoading, isSuperAdmin]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 
@@ -189,7 +191,7 @@ export default function MemberPortalPage() {
               <TableBody>
                 {serviceHours.map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell>{format(new Date(log.date), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>{log.date ? format(new Date(log.date), 'MMM d, yyyy') : 'N/A'}</TableCell>
                     <TableCell className="font-medium">{log.eventName}</TableCell>
                     <TableCell>{log.hours}</TableCell>
                     <TableCell>
