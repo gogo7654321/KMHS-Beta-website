@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { Event, EventType, Admin } from '@/lib/types';
-import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History, Share2 } from 'lucide-react';
 import { format, isPast, parse } from 'date-fns';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
@@ -46,16 +46,6 @@ function ClientDateTime({ dateTime, endTime, formatStr, className, tag: Tag = 's
 function EventCard({ event, canManage, isEventPast }: { event: Event, canManage: boolean, isEventPast: boolean }) {
   const { toast } = useToast();
   const firestore = useFirestore();
-
-  const getBadgeVariant = (type: string) => {
-    switch (type) {
-        case 'Meeting': return 'outline';
-        case 'Service': return 'default';
-        case 'Fundraiser': return 'destructive';
-        case 'Social': return 'secondary';
-        default: return 'default';
-    }
-  };
 
   const handleDelete = () => {
     if (!event) return;
@@ -209,6 +199,10 @@ export default function EventsPage() {
         });
   }, [events, filter, now]);
 
+  const handleSubscribe = () => {
+    window.open('/api/events/feed', '_blank');
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 md:px-6">
       <div className="flex flex-col items-center justify-between gap-4 mb-12 text-center sm:flex-row sm:text-left">
@@ -220,14 +214,20 @@ export default function EventsPage() {
             Find out what&apos;s happening and view our chapter history.
             </p>
         </div>
-        {canManage && (
-            <AddEditEventDialog mode="add">
-                <Button size="lg" className="bg-amber-400 text-amber-950 hover:bg-amber-500 font-bold border-2 border-amber-500">
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Add Event
-                </Button>
-            </AddEditEventDialog>
-        )}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+            <Button variant="outline" size="lg" onClick={handleSubscribe} className="gap-2">
+                <Share2 className="h-5 w-5" />
+                Subscribe to Calendar
+            </Button>
+            {canManage && (
+                <AddEditEventDialog mode="add">
+                    <Button size="lg" className="bg-amber-400 text-amber-950 hover:bg-amber-500 font-bold border-2 border-amber-500">
+                        <PlusCircle className="mr-2 h-5 w-5" />
+                        Add Event
+                    </Button>
+                </AddEditEventDialog>
+            )}
+        </div>
       </div>
 
       <div className="space-y-8">
