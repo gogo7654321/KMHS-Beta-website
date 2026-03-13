@@ -25,7 +25,7 @@ export default function MemberPortalPage() {
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   // Determine if current user is Super Admin
-  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
 
   // Fetch Member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
