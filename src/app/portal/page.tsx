@@ -41,6 +41,7 @@ export default function MemberPortalPage() {
     // Only fetch if we have a user AND a confirmed member profile.
     if (!user || isMemberLoading || !memberData) return null;
     
+    // We filter by memberId to ensure security rules pass for non-admins.
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),

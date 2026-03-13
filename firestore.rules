@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions (Top Level) ---
+    // --- Helper Functions ---
     
     function isSignedIn() {
       return request.auth != null;
@@ -19,11 +19,8 @@ service cloud.firestore {
       return isSuperAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid)));
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
     // --- Global Super Admin Bypass ---
+    // This provides absolute root-level access for the designated super admin.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -32,27 +29,18 @@ service cloud.firestore {
 
     match /admin/{userId} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || isOwner(userId);
+      allow write: if isSuperAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /members/{userId} {
       allow read: if isSignedIn();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     match /service-hours/{hourId} {
-      // Admins and Super Admins have unrestricted access.
-      allow read, write: if isAdmin();
-      
-      // Members can list their own hours using a query filter.
-      allow list: if isSignedIn() && (
-        isAdmin() || (
-          request.query.filters.size() > 0 && 
-          request.query.filters[0].value == request.auth.uid
-        )
-      );
-      
-      allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      // Admins and Super Admins have unrestricted access via global bypass or isAdmin check.
+      // List operations are implicitly allowed for members if the query filters for their own memberId.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
