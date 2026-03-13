@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
@@ -13,15 +13,15 @@ export default function LoginSelectionPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
-  if (isUserLoading) {
-    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
-  }
+  useEffect(() => {
+    if (user) {
+      // In a real app we'd check roles, but for now we default to portal
+      router.push('/portal');
+    }
+  }, [user, router]);
 
-  if (user) {
-    // We'll redirect based on role in a real app, 
-    // but for now, we just push to portal or admin
-    router.push('/portal');
-    return null;
+  if (isUserLoading || user) {
+    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
   }
 
   return (

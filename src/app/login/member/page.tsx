@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -28,13 +28,14 @@ export default function MemberLoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
-  if (isUserLoading) {
-    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
-  }
+  useEffect(() => {
+    if (user) {
+      router.push('/portal');
+    }
+  }, [user, router]);
 
-  if (user) {
-    router.push('/portal');
-    return null;
+  if (isUserLoading || user) {
+    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -43,10 +44,9 @@ export default function MemberLoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/portal');
+      // Redirect handled by useEffect above
     } catch (err: any) {
       setError(err.message || "Failed to sign in. Please check your credentials.");
-    } finally {
       setIsLoading(false);
     }
   };
