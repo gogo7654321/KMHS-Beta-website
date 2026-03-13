@@ -40,7 +40,9 @@ service cloud.firestore {
     match /admin/{userId} {
       allow get, list: if true;
       allow update: if request.auth.uid == userId || isSuperAdmin();
-      allow create: if isSuperAdmin();
+      // Allow users to create their own admin profile (e.g. via the signup page)
+      // or allow Super Admin to create them.
+      allow create: if (isSignedIn() && request.auth.uid == userId) || isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
