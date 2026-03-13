@@ -9,7 +9,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Absolute Super Admin Check
+    // Absolute Super Admin Check (UID and Email for redundancy)
     function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'npatel012010@gmail.com' ||
@@ -23,7 +23,7 @@ service cloud.firestore {
     }
 
     // --- GLOBAL SUPER ADMIN BYPASS ---
-    // Higher level bypass to ensure unrestricted access
+    // This is the highest priority rule. If this is true, all other rules are ignored.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -41,14 +41,14 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Admins and Super Admins have full access
-      allow read, write: if isAdmin();
+      // Explicitly allow listing and getting for Super Admins, Admins, and the specific Owner
+      allow read: if isSuperAdmin() || isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       
-      // Members can read and manage their own logs
-      // Note: List operations must be filtered by memberId on the client for this to pass
-      allow list, get: if isSignedIn() && resource.data.memberId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending';
+      // Allow creation if the user is an admin or is creating their own record
+      allow create: if isSuperAdmin() || isAdmin() || (isSignedIn() && request.resource.data.memberId == request.auth.uid);
+      
+      // Allow updates/deletes if admin or if owner and still pending
+      allow update, delete: if isSuperAdmin() || isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending');
     }
 
     match /events/{eventId} {

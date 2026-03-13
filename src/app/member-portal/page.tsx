@@ -10,7 +10,7 @@ import type { Member, ServiceHour, Admin } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert, Loader2 } from 'lucide-react';
+import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert, Loader2, LayoutDashboard } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -25,33 +25,30 @@ export default function MemberPortalPage() {
   const { toast } = useToast();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
-  // Determine if viewer is Super Admin
-  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
+  // Check if current user is the Super Admin by email
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
 
   // Check for existing member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
   const { data: memberData, isLoading: isMemberLoading } = useDoc<Member>(memberDocRef);
 
-  // Check for admin profile (Leadership data) to sync if needed
+  // Check for admin profile to see if this is an officer
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
-  // Helper for conditional UI
   const isAdmin = !!adminData || isSuperAdmin;
 
-  // Strictly guard the service hours query. 
-  // We use the memberData presence as a trigger to ensure the rules pass.
+  // The query only runs when user, memberData, and loading states are settled.
+  // This prevents permission errors that occur when querying before the profile exists.
   const hoursQuery = useMemoFirebase(() => {
-    // We only list if we have a confirmed member profile to prevent rule rejections
     if (!user || isMemberLoading || !memberData) return null;
     
-    // Filtering by memberId is required for standard member security rules to pass
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user, memberData, isMemberLoading]);
+  }, [firestore, user?.uid, memberData?.id, isMemberLoading]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 
@@ -61,6 +58,7 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
+  // Generates a random 5-digit numeric member ID
   const generateMemberId = () => Math.floor(10000 + Math.random() * 90000).toString();
 
   const handleCreateMemberFromAdmin = async () => {
@@ -70,28 +68,29 @@ export default function MemberPortalPage() {
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
       
-      // Creating a completely new member account from leadership data
+      // Creating a completely new member account document using leadership data as source
       const newMemberData: Member = {
         id: user.uid,
         memberId: generateMemberId(),
-        firstName: adminData?.firstName || user.displayName?.split(' ')[0] || 'User',
-        lastName: adminData?.lastName || user.displayName?.split(' ')[1] || 'Name',
+        firstName: adminData?.firstName || user.displayName?.split(' ')[0] || 'Member',
+        lastName: adminData?.lastName || user.displayName?.split(' ')[1] || 'User',
         email: user.email || '',
         grade: adminData?.grade || 12,
         totalHours: 0,
       };
 
+      // Set without merge to ensure a clean new member document is created
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
       
       toast({
-        title: "Profile Created",
-        description: "A new member profile has been created for your leadership account.",
+        title: "Member Profile Created",
+        description: `Welcome, ${newMemberData.firstName}! Your dashboard is ready.`,
       });
       
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Profile Creation Failed",
+        title: "Creation Failed",
         description: error.message || "Failed to create member profile.",
       });
     } finally {
@@ -117,29 +116,29 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
-  // If the user is an admin (or super admin) but doesn't have a member profile yet
-  if (!memberData && (adminData || isSuperAdmin)) {
+  // If the user is an admin or super admin but has NO member profile, prompt for creation.
+  if (!memberData && isAdmin) {
     return (
       <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
         <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-pulse" />
-        <h1 className="text-3xl font-bold font-headline">Initialize Member Dashboard</h1>
+        <h1 className="text-3xl font-bold font-headline">Member Dashboard Initialization</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
-          You are signed in as {isSuperAdmin ? 'the Super Admin' : `a club officer (${adminData?.position})`}. 
-          To view your dashboard and log hours, we will create a dedicated member account for you.
+          Hello {adminData?.firstName || 'Officer'}! You are logged into the Member Portal, but we haven't created a member record for you yet. 
+          Would you like to initialize your service dashboard?
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} size="lg" className="font-bold text-lg px-8">
                 {isCreatingProfile ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Creating Profile...
+                    Initializing...
                   </>
                 ) : (
-                  'Create Member Profile'
+                  'Create My Member Profile'
                 )}
             </Button>
             <Button variant="outline" size="lg" asChild>
-                <Link href="/admin-portal">Go to Admin Portal</Link>
+                <Link href="/admin-portal">Return to Admin Portal</Link>
             </Button>
         </div>
       </div>
@@ -149,10 +148,10 @@ export default function MemberPortalPage() {
   if (!memberData) {
       return (
         <div className="container mx-auto py-24 px-4 text-center">
-            <h1 className="text-2xl font-bold">Member Profile Not Found</h1>
-            <p className="mt-2 text-muted-foreground">Please register to access your service dashboard.</p>
+            <h1 className="text-2xl font-bold">Member Account Required</h1>
+            <p className="mt-2 text-muted-foreground">We couldn't find a member profile for this account.</p>
             <Button asChild className="mt-6">
-                <Link href="/signup/member">Register Now</Link>
+                <Link href="/signup/member">Create Member Account</Link>
             </Button>
         </div>
       );
@@ -170,12 +169,14 @@ export default function MemberPortalPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold">Welcome, {memberData.firstName}</h1>
-          <p className="text-muted-foreground">KMHS Beta Club Member Portal • ID: #{memberData.memberId}</p>
+          <p className="text-muted-foreground">KMHS Beta Club • Member ID: #{memberData.memberId}</p>
         </div>
         <div className="flex gap-2">
             {isAdmin && (
                 <Button variant="outline" asChild>
-                    <Link href="/admin-portal">Admin Portal</Link>
+                    <Link href="/admin-portal" className="gap-2">
+                      <LayoutDashboard className="h-4 w-4" /> Admin Portal
+                    </Link>
                 </Button>
             )}
             <Button asChild className="font-bold">
@@ -190,12 +191,12 @@ export default function MemberPortalPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-2 border-primary/20 bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Approved Hours</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Verified Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{totalApprovedHours} <span className="text-sm font-normal text-muted-foreground">/ {annualGoal}</span></div>
-            <p className="text-xs text-muted-foreground mt-1">Annual Goal Progress</p>
+            <p className="text-xs text-muted-foreground mt-1">Goal Completion</p>
             <Progress value={progressPercent} className="mt-3 h-2" />
           </CardContent>
         </Card>
@@ -209,13 +210,13 @@ export default function MemberPortalPage() {
             <div className="text-3xl font-bold">
               {serviceHours?.filter(h => h.status === 'pending').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Logs waiting for approval</p>
+            <p className="text-xs text-muted-foreground mt-1">Logs awaiting verification</p>
           </CardContent>
         </Card>
 
         <Card className="bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Member Status</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Account Status</CardTitle>
             <Award className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -225,13 +226,13 @@ export default function MemberPortalPage() {
         </Card>
       </div>
 
-      <Card className="border-border/60">
+      <Card className="border-border/60 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-headline">
             <History className="h-5 w-5 text-primary" />
             Service History
           </CardTitle>
-          <CardDescription>Your verified volunteer contributions.</CardDescription>
+          <CardDescription>All your logged volunteer contributions.</CardDescription>
         </CardHeader>
         <CardContent>
           {serviceHours && serviceHours.length > 0 ? (
@@ -239,7 +240,7 @@ export default function MemberPortalPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Event/Activity</TableHead>
+                  <TableHead>Event</TableHead>
                   <TableHead>Hours</TableHead>
                   <TableHead className="text-right">Status</TableHead>
                 </TableRow>
@@ -265,10 +266,10 @@ export default function MemberPortalPage() {
               </TableBody>
             </Table>
           ) : (
-            <div className="text-center py-20 border-2 border-dashed rounded-lg bg-secondary/5">
-              <p className="text-muted-foreground text-lg">No service hours logged yet.</p>
+            <div className="text-center py-24 border-2 border-dashed rounded-lg bg-secondary/5">
+              <p className="text-muted-foreground text-lg font-medium">No service history yet.</p>
               <Button asChild variant="outline" className="mt-4">
-                <Link href="/member-portal/log-hours">Log Your First Hours</Link>
+                <Link href="/member-portal/log-hours">Log Your First Activity</Link>
               </Button>
             </div>
           )}

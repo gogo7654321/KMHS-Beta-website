@@ -60,6 +60,7 @@ export default function MemberSignupPage() {
     },
   });
 
+  // Generates a random 5-digit numeric member ID
   const generateMemberId = () => Math.floor(10000 + Math.random() * 90000).toString();
 
   const onSubmit = async (data: SignupFormValues) => {
@@ -110,7 +111,7 @@ export default function MemberSignupPage() {
           </Link>
         </Button>
       </div>
-      <Card className="w-full max-w-[500px] border-2 border-primary/20">
+      <Card className="w-full max-w-[500px] border-2 border-primary/20 shadow-xl">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <User className="h-6 w-6" />
@@ -157,10 +158,10 @@ export default function MemberSignupPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-xs font-normal text-muted-foreground ml-1">(do not use school email)</span>
+                      Email <span className="text-xs font-bold text-primary ml-1">(do not use school email)</span>
                     </FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="student@kmhs.com" {...field} />
+                      <Input type="email" placeholder="student@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
