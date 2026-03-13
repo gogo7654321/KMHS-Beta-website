@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
-import type { Member, ServiceHour } from '@/lib/types';
+import type { Member, ServiceHour, Admin } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -21,17 +21,26 @@ export default function MemberPortalPage() {
   const firestore = useFirestore();
   const router = useRouter();
 
+  // Check for member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
   const { data: memberData, isLoading: isMemberLoading } = useDoc<Member>(memberDocRef);
 
+  // Check for admin profile (admins are also members but might not have a member doc yet)
+  const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
+  const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
+
   const hoursQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    // ONLY run the query if we have a user and we've confirmed they are either a member or an admin.
+    // This avoids "Missing or insufficient permissions" errors on initial load for super admins
+    // who might not have a member record yet.
+    if (!user || (!memberData && !adminData && !isMemberLoading && !isAdminLoading)) return null;
+    
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, memberData, adminData, isMemberLoading, isAdminLoading]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 
@@ -41,7 +50,7 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || isMemberLoading || isHoursLoading) {
+  if (isUserLoading || isMemberLoading || isAdminLoading || isHoursLoading) {
     return (
       <div className="container mx-auto py-12 px-4">
         <div className="space-y-8">
@@ -57,7 +66,40 @@ export default function MemberPortalPage() {
     );
   }
 
-  if (!user || !memberData) return null;
+  if (!user) return null;
+
+  // If the user is an admin but doesn't have a member profile, they might need to create one
+  if (!memberData && adminData) {
+    return (
+      <div className="container mx-auto py-12 px-4 flex flex-col items-center justify-center text-center">
+        <ShieldAlert className="h-16 w-16 text-primary mb-6" />
+        <h1 className="text-3xl font-bold">Admin Account Detected</h1>
+        <p className="mt-4 text-muted-foreground max-w-md">
+          You are logged in as an administrator ({adminData.position}). To access the member portal features like service hour tracking, you must also have a member profile.
+        </p>
+        <div className="mt-8 flex gap-4">
+            <Button asChild variant="outline">
+                <Link href="/admin">Go to Admin Portal</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/signup/member">Create Member Profile</Link>
+            </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!memberData) {
+      return (
+        <div className="container mx-auto py-12 px-4 text-center">
+            <h1 className="text-2xl font-bold">Profile Not Found</h1>
+            <p className="mt-2 text-muted-foreground">We couldn't find a member profile associated with this account.</p>
+            <Button asChild className="mt-6">
+                <Link href="/signup/member">Complete Registration</Link>
+            </Button>
+        </div>
+      );
+  }
 
   const totalApprovedHours = serviceHours
     ? serviceHours.filter(h => h.status === 'approved').reduce((acc, h) => acc + h.hours, 0)

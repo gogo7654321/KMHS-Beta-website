@@ -20,7 +20,7 @@ service cloud.firestore {
     }
 
     match /admin/{userId} {
-      allow get, list: if true;
+      allow get, list: if isSignedIn();
       allow write: if isSuperAdmin() || isOwner(userId);
     }
 
@@ -33,7 +33,9 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      allow list: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      // Allow list if the user is an admin (view all) or if they are querying their own hours.
+      // Note: Firestore rules for list require the query to be filtered appropriately.
+      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 100 && request.auth.uid == resource.data.memberId);
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
       allow update: if isAdmin();
@@ -50,8 +52,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /{document=**} {
+    match /photos/{photoId} {
       allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default catch-all for other collections defined in backend.json or otherwise
+    match /{document=**} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
   }
