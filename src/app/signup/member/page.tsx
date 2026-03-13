@@ -84,7 +84,7 @@ export default function MemberSignupPage() {
           description: "Your member account has been created.",
         });
         
-        router.push('/portal');
+        router.push('/member-portal');
       }
     } catch (err: any) {
       toast({
@@ -154,7 +154,7 @@ export default function MemberSignupPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-xs font-normal text-muted-foreground">(do not use school email)</span>
+                      Email <span className="text-xs font-normal text-muted-foreground ml-1">(do not use school email)</span>
                     </FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="student@kmhs.com" {...field} />

@@ -30,12 +30,12 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/admin');
+      router.push('/admin-portal');
     }
   }, [user, router]);
 
   if (isUserLoading || user) {
-    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Loading...</div>;
+    return <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">Verifying session...</div>;
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -44,21 +44,17 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirect handled by useEffect above
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
+      setError("Authentication failed. Ensure you are using registered leadership credentials.");
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center bg-background px-4">
+    <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4">
       <div className="mb-6 w-full max-w-[400px]">
         <Button variant="ghost" size="sm" asChild className="gap-2">
-          <Link href="/login">
-            <ChevronLeft className="h-4 w-4" />
-            Back to selection
-          </Link>
+          <Link href="/login"><ChevronLeft className="h-4 w-4" /> Back</Link>
         </Button>
       </div>
       <Card className="w-full max-w-[400px] border-2 border-primary/20">
@@ -66,40 +62,24 @@ export default function AdminLoginPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Shield className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold">Admin Portal</CardTitle>
-          <CardDescription>
-            Enter your credentials to manage KMHS Beta.
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">Leadership Portal</CardTitle>
+          <CardDescription>Administrative access for KMHS Beta Officers.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSignIn}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email-signin">Email</Label>
-              <Input
-                id="email-signin"
-                type="email"
-                placeholder="admin@kmhsbeta.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email-signin" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password-signin">Password</Label>
-              <Input
-                id="password-signin"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password-signin" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
           </CardContent>
-          <CardFooter className="flex flex-col items-stretch">
+          <CardFooter>
             <Button type="submit" className="w-full font-bold" disabled={isLoading}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? 'Authenticating...' : 'Sign In as Admin'}
             </Button>
           </CardFooter>
         </form>
