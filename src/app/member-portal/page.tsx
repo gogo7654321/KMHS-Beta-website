@@ -25,21 +25,21 @@ export default function MemberPortalPage() {
   const { toast } = useToast();
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
-  // Check if current user is the Super Admin by email
+  // Determine if current user is Super Admin
   const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
 
-  // Check for existing member profile
+  // Fetch Member profile
   const memberDocRef = useMemoFirebase(() => user ? doc(firestore, 'members', user.uid) : null, [firestore, user]);
   const { data: memberData, isLoading: isMemberLoading } = useDoc<Member>(memberDocRef);
 
-  // Check for admin profile to see if this is an officer
+  // Fetch Leadership profile
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
 
+  // Define isAdmin for local checks
   const isAdmin = !!adminData || isSuperAdmin;
 
-  // The query only runs when user, memberData, and loading states are settled.
-  // This prevents permission errors that occur when querying before the profile exists.
+  // Protected query: Only run if we have a user AND a confirmed member profile to avoid permission ghosts
   const hoursQuery = useMemoFirebase(() => {
     if (!user || isMemberLoading || !memberData) return null;
     
@@ -68,7 +68,7 @@ export default function MemberPortalPage() {
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
       
-      // Creating a completely new member account document using leadership data as source
+      // Creating a clean, new member document using leadership data as source
       const newMemberData: Member = {
         id: user.uid,
         memberId: generateMemberId(),
@@ -79,18 +79,18 @@ export default function MemberPortalPage() {
         totalHours: 0,
       };
 
-      // Set without merge to ensure a clean new member document is created
+      // Set clean document
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
       
       toast({
-        title: "Member Profile Created",
-        description: `Welcome, ${newMemberData.firstName}! Your dashboard is ready.`,
+        title: "Member Profile Initialized",
+        description: `Welcome, ${newMemberData.firstName}! Your 5-digit ID is #${newMemberData.memberId}.`,
       });
       
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Creation Failed",
+        title: "Initialization Failed",
         description: error.message || "Failed to create member profile.",
       });
     } finally {
@@ -116,15 +116,15 @@ export default function MemberPortalPage() {
 
   if (!user) return null;
 
-  // If the user is an admin or super admin but has NO member profile, prompt for creation.
+  // Handle case where an Officer/Admin needs a member profile
   if (!memberData && isAdmin) {
     return (
       <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
-        <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-pulse" />
-        <h1 className="text-3xl font-bold font-headline">Member Dashboard Initialization</h1>
+        <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-bounce" />
+        <h1 className="text-3xl font-bold font-headline">Member Portal Setup</h1>
         <p className="mt-4 text-muted-foreground max-w-md">
-          Hello {adminData?.firstName || 'Officer'}! You are logged into the Member Portal, but we haven't created a member record for you yet. 
-          Would you like to initialize your service dashboard?
+          Hello {adminData?.firstName || 'Officer'}! You are logged into the Member Portal, but you don't have a member record yet. 
+          Initialize your dashboard to start logging your own service hours.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} size="lg" className="font-bold text-lg px-8">
@@ -138,7 +138,7 @@ export default function MemberPortalPage() {
                 )}
             </Button>
             <Button variant="outline" size="lg" asChild>
-                <Link href="/admin-portal">Return to Admin Portal</Link>
+                <Link href="/admin-portal">Go to Admin Portal</Link>
             </Button>
         </div>
       </div>
@@ -148,10 +148,10 @@ export default function MemberPortalPage() {
   if (!memberData) {
       return (
         <div className="container mx-auto py-24 px-4 text-center">
-            <h1 className="text-2xl font-bold">Member Account Required</h1>
+            <h1 className="text-2xl font-bold">Registration Required</h1>
             <p className="mt-2 text-muted-foreground">We couldn't find a member profile for this account.</p>
             <Button asChild className="mt-6">
-                <Link href="/signup/member">Create Member Account</Link>
+                <Link href="/signup/member">Join the Chapter</Link>
             </Button>
         </div>
       );
@@ -168,8 +168,8 @@ export default function MemberPortalPage() {
     <div className="container mx-auto py-12 px-4 space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="font-headline text-4xl font-bold">Welcome, {memberData.firstName}</h1>
-          <p className="text-muted-foreground">KMHS Beta Club • Member ID: #{memberData.memberId}</p>
+          <h1 className="font-headline text-4xl font-bold">Member Portal</h1>
+          <p className="text-muted-foreground">Welcome back, {memberData.firstName} • ID: #{memberData.memberId}</p>
         </div>
         <div className="flex gap-2">
             {isAdmin && (
@@ -182,7 +182,7 @@ export default function MemberPortalPage() {
             <Button asChild className="font-bold">
                 <Link href="/member-portal/log-hours">
                     <PlusCircle className="mr-2 h-5 w-5" />
-                    Log Service Hours
+                    Log Hours
                 </Link>
             </Button>
         </div>
@@ -191,7 +191,7 @@ export default function MemberPortalPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-2 border-primary/20 bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Verified Hours</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Approved Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -203,24 +203,24 @@ export default function MemberPortalPage() {
 
         <Card className="bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Pending Review</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Pending</CardTitle>
             <AlertCircle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
               {serviceHours?.filter(h => h.status === 'pending').length || 0}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Logs awaiting verification</p>
+            <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
           </CardContent>
         </Card>
 
         <Card className="bg-secondary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Account Status</CardTitle>
+            <CardTitle className="text-sm font-medium uppercase tracking-wider">Member Status</CardTitle>
             <Award className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">Active</div>
+            <div className="text-3xl font-bold text-primary uppercase">Active</div>
             <p className="text-xs text-muted-foreground mt-1">Grade {memberData.grade} • {isSuperAdmin ? 'Super Admin' : (adminData ? 'Officer' : 'Member')}</p>
           </CardContent>
         </Card>
@@ -232,7 +232,7 @@ export default function MemberPortalPage() {
             <History className="h-5 w-5 text-primary" />
             Service History
           </CardTitle>
-          <CardDescription>All your logged volunteer contributions.</CardDescription>
+          <CardDescription>Your logged volunteer contributions and status.</CardDescription>
         </CardHeader>
         <CardContent>
           {serviceHours && serviceHours.length > 0 ? (

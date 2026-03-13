@@ -85,7 +85,7 @@ export default function MemberSignupPage() {
         
         toast({
           title: "Welcome to KMHS Beta!",
-          description: "Your member account has been created.",
+          description: `Your account has been created. Your member ID is #${memberData.memberId}.`,
         });
         
         router.push('/member-portal');
@@ -116,9 +116,9 @@ export default function MemberSignupPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <User className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold">Join KMHS Beta</CardTitle>
+          <CardTitle className="text-2xl font-bold">Member Sign Up</CardTitle>
           <CardDescription>
-            Register your student account to track service hours.
+            Register your student account to start tracking service hours.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -185,7 +185,7 @@ export default function MemberSignupPage() {
                 name="grade"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Grade Level</FormLabel>
+                    <FormLabel>Grade Level (9-12)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -195,8 +195,8 @@ export default function MemberSignupPage() {
               />
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full font-bold" disabled={isLoading}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+              <Button type="submit" className="w-full font-bold h-12 text-lg" disabled={isLoading}>
+                {isLoading ? 'Creating Account...' : 'Complete Registration'}
               </Button>
             </CardFooter>
           </form>
