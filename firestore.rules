@@ -3,55 +3,53 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ------------------------------------------------------------------------
-    // Helper Functions
-    // ------------------------------------------------------------------------
-
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // The Super Admin has a specific email address.
     function isSuperAdmin() {
       return isSignedIn() && request.auth.token.email == 'npatel012010@gmail.com';
     }
     
-    // An admin is a user whose UID exists as a document in the /admin collection OR is the Super Admin.
     function isAdmin() {
-      return (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid))) || isSuperAdmin();
+      return isSuperAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid)));
     }
 
-    // ------------------------------------------------------------------------
-    // Super Admin Global Access
-    // ------------------------------------------------------------------------
-
-    /**
-     * Grants the Super Admin universal read and write access to the entire database.
-     * This rule is evaluated first for a super admin.
-     */
-    match /{document=**} {
-      allow read, write: if isSuperAdmin();
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-
-    // ------------------------------------------------------------------------
-    // Administrative Rules (for non-super-admins)
-    // ------------------------------------------------------------------------
 
     match /admin/{userId} {
       allow get, list: if true;
-      allow update: if request.auth.uid == userId || isSuperAdmin();
-      // Allow users to create their own admin profile (e.g. via the signup page)
-      // or allow Super Admin to create them.
-      allow create: if (isSignedIn() && request.auth.uid == userId) || isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow write: if isSuperAdmin() || isOwner(userId);
+    }
+
+    match /members/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /service-hours/{hourId} {
+      allow list: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.memberId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /events/{eventId} {
-      allow get, list: if true;
+      allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Other rules...
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{document=**} {
       allow read: if true;
       allow write: if isAdmin();

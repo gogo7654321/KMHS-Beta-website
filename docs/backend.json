@@ -55,31 +55,6 @@
         "rsvpEnabled"
       ]
     },
-    "EventType": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "EventType",
-      "type": "object",
-      "description": "Represents the type of an event.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the event type."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the event type (e.g., Meeting, Service Project)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the event type."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description"
-      ]
-    },
     "ServiceHour": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ServiceHour",
@@ -92,11 +67,11 @@
         },
         "memberId": {
           "type": "string",
-          "description": "Reference to Member. (Relationship: Member 1:N ServiceHour)"
+          "description": "Reference to Member UID."
         },
-        "eventId": {
+        "eventName": {
           "type": "string",
-          "description": "Reference to Event. (Relationship: Event 1:N ServiceHour)"
+          "description": "Name of the event or activity."
         },
         "hours": {
           "type": "number",
@@ -105,20 +80,29 @@
         "date": {
           "type": "string",
           "description": "The date the service hours were performed.",
-          "format": "date-time"
+          "format": "date"
         },
         "description": {
           "type": "string",
-          "description": "Description of the service activity"
+          "description": "Description of the service activity."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"],
+          "description": "The approval status of the hours."
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "required": [
         "id",
         "memberId",
-        "eventId",
+        "eventName",
         "hours",
         "date",
-        "description"
+        "status"
       ]
     },
     "Member": {
@@ -129,28 +113,24 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the member."
+          "description": "Unique identifier for the member (UID)."
         },
         "firstName": {
-          "type": "string",
-          "description": "The first name of the member."
+          "type": "string"
         },
         "lastName": {
-          "type": "string",
-          "description": "The last name of the member."
+          "type": "string"
         },
         "grade": {
-          "type": "number",
-          "description": "The grade level of the member."
+          "type": "number"
         },
         "email": {
           "type": "string",
-          "description": "The email address of the member.",
           "format": "email"
         },
-        "positionId": {
-          "type": "string",
-          "description": "Reference to Position. (Relationship: Position 1:N Member)"
+        "totalHours": {
+          "type": "number",
+          "description": "Cached total of approved service hours."
         }
       },
       "required": [
@@ -158,8 +138,7 @@
         "firstName",
         "lastName",
         "grade",
-        "email",
-        "positionId"
+        "email"
       ]
     },
     "Admin": {
@@ -169,214 +148,27 @@
       "description": "Represents an administrator user.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the admin (matches Firebase Auth UID)."
+          "type": "string"
         },
         "firstName": {
-          "type": "string",
-          "description": "The first name of the admin."
+          "type": "string"
         },
         "lastName": {
-          "type": "string",
-          "description": "The last name of the admin."
-        },
-        "grade": {
-          "type": "number",
-          "description": "The grade level of the admin."
+          "type": "string"
         },
         "email": {
           "type": "string",
-          "description": "The email address of the admin.",
           "format": "email"
         },
         "position": {
-          "type": "string",
-          "description": "The position of the admin (e.g., President, Faculty Advisor)."
-        },
-        "bio": {
-          "type": "string",
-          "description": "A short biography of the administrator."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL for the administrator's profile picture.",
-          "format": "uri"
-        },
-        "order": {
-          "type": "number",
-          "description": "Display order on the leadership page."
-        },
-        "personalUrl": {
-          "type": "string",
-          "description": "A personal website or social media URL for the administrator.",
-          "format": "uri"
+          "type": "string"
         }
-      },
-      "required": [
-        "id",
-        "firstName",
-        "lastName",
-        "grade",
-        "email",
-        "position"
-      ]
-    },
-    "Position": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Position",
-      "type": "object",
-      "description": "Represents a leadership position within the Beta Club.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the position."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the position (e.g., President, Vice President)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the responsibilities of the position."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "description"
-      ]
-    },
-    "Photo": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Photo",
-      "type": "object",
-      "description": "Represents a photo in the gallery.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the photo."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the photo."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the photo."
-        },
-        "category": {
-          "type": "string",
-          "description": "The category of the photo.",
-          "enum": [
-            "Service",
-            "Academics",
-            "Social",
-            "Ceremonies"
-          ]
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "The URL of the photo, hosted in Firebase Storage.",
-          "format": "uri"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the photo was added.",
-          "format": "date-time"
-        },
-        "names": {
-          "type": "array",
-          "description": "A list of names of people featured in the photo.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "order": {
-          "type": "number",
-          "description": "Display order in the gallery."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "description",
-        "category",
-        "imageUrl",
-        "createdAt"
-      ]
-    },
-    "Announcement": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Announcement",
-      "type": "object",
-      "description": "Represents an announcement created by the administration.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the announcement."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the announcement."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the announcement."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time the announcement was created.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "content",
-        "createdAt"
-      ]
-    },
-    "HomePageContent": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Home Page Content",
-      "type": "object",
-      "description": "Singleton document for dynamic content on the home page.",
-      "properties": {
-        "announcementText": {
-          "type": "string",
-          "description": "The text for the main announcement bar on the home page."
-        }
-      },
-      "required": [
-        "announcementText"
-      ]
-    },
-    "GallerySettings": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Gallery Settings",
-      "type": "object",
-      "description": "Singleton document for dynamic settings for the photo gallery, controlled by Super Admins.",
-      "properties": {
-        "isTitleRequired": {
-          "type": "boolean",
-          "description": "If true, the title field is mandatory for photo uploads."
-        },
-        "isDescriptionRequired": {
-          "type": "boolean",
-          "description": "If true, the description field is mandatory for photo uploads."
-        },
-        "isNamesRequired": {
-          "type": "boolean",
-          "description": "If true, the names field is mandatory for photo uploads."
-        }
-      },
-      "required": []
+      }
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
@@ -388,29 +180,27 @@
           "schema": {
             "$ref": "#/backend/entities/Admin"
           },
-          "description": "Collection of admin users. Existence of a document with a user's ID grants admin privileges.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the admin user."
-            }
-          ]
+          "description": "Collection of admin users."
         }
       },
       {
-        "path": "/events/{eventId}",
+        "path": "/members/{userId}",
         "definition": {
-          "entityName": "Event",
+          "entityName": "Member",
           "schema": {
-            "$ref": "#/backend/entities/Event"
+            "$ref": "#/backend/entities/Member"
           },
-          "description": "Collection of events.",
-          "params": [
-            {
-              "name": "eventId",
-              "description": "Unique identifier for the event."
-            }
-          ]
+          "description": "Collection of club members."
+        }
+      },
+      {
+        "path": "/service-hours/{hourId}",
+        "definition": {
+          "entityName": "ServiceHour",
+          "schema": {
+            "$ref": "#/backend/entities/ServiceHour"
+          },
+          "description": "Service hour log entries."
         }
       }
     ]

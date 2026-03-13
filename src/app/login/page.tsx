@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Shield, ArrowRight, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { User, Shield, ArrowRight } from 'lucide-react';
 
 export default function LoginSelectionPage() {
   const { user, isUserLoading } = useUser();
@@ -19,7 +18,9 @@ export default function LoginSelectionPage() {
   }
 
   if (user) {
-    router.push('/admin');
+    // We'll redirect based on role in a real app, 
+    // but for now, we just push to portal or admin
+    router.push('/portal');
     return null;
   }
 
@@ -32,7 +33,7 @@ export default function LoginSelectionPage() {
 
       <div className="grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
         {/* Member Choice */}
-        <Card className="group relative flex flex-col border-2 transition-all hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5">
+        <Card className="group relative flex flex-col border-2 border-primary/20 transition-all hover:border-primary hover:shadow-xl hover:shadow-primary/10">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary">
               <User className="h-8 w-8" />
@@ -44,15 +45,12 @@ export default function LoginSelectionPage() {
             <p>Access your service hours, RSVPs, and member-only resources.</p>
           </CardContent>
           <CardFooter className="pt-6">
-            <div className="flex w-full flex-col items-center gap-3">
-              <Button variant="secondary" className="w-full gap-2 opacity-50 cursor-not-allowed" disabled>
+            <Button asChild className="w-full group/btn font-bold">
+              <Link href="/login/member">
                 Member Log In
-                <Clock className="h-4 w-4" />
-              </Button>
-              <Badge variant="outline" className="animate-pulse bg-amber-400/10 text-amber-500 border-amber-500/50 px-4 py-1">
-                Coming Soon
-              </Badge>
-            </div>
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+              </Link>
+            </Button>
           </CardFooter>
         </Card>
 

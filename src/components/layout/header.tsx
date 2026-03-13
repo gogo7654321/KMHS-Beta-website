@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User as UserIcon, LogIn } from 'lucide-react';
+import { Menu, X, User as UserIcon, LogIn, LayoutDashboard, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -13,12 +13,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { navLinks, placeholderImages } from '@/lib/data';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useState } from 'react';
+import { doc } from 'firebase/firestore';
+import type { Admin } from '@/lib/types';
 
 function Logos() {
   const betaLogo = placeholderImages.find(p => p.id === 'beta-logo');
@@ -40,7 +42,12 @@ function Logos() {
 function UserNav() {
   const { user } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const defaultAvatar = placeholderImages.find(p => p.id === 'default-avatar');
+
+  const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
+  const { data: adminData } = useDoc<Admin>(adminDocRef);
+  const isAdmin = !!adminData || user?.email === 'npatel012010@gmail.com';
 
   if (!user) {
     return (
@@ -56,7 +63,7 @@ function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/20">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.photoURL ?? defaultAvatar?.imageUrl ?? ''} alt={user.displayName ?? ''} />
             <AvatarFallback>
@@ -68,21 +75,28 @@ function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Admin</p>
+            <p className="text-sm font-medium leading-none">{isAdmin ? 'Administrator' : 'Beta Member'}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/admin">Admin Portal</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/admin">Manage Account</Link>
-        </DropdownMenuItem>
+        {isAdmin ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin" className="cursor-pointer flex items-center gap-2">
+              <Shield className="h-4 w-4" /> Admin Portal
+            </Link>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem asChild>
+            <Link href="/portal" className="cursor-pointer flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" /> Member Dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => auth.signOut()}>
+        <DropdownMenuItem onClick={() => auth.signOut()} className="cursor-pointer text-destructive">
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -122,7 +136,7 @@ export function Header() {
                 <div className="mb-8 flex items-center justify-between">
                     <Logos />
                     <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}>
                             <X className="h-6 w-6" />
                         </Button>
                     </SheetTrigger>
@@ -141,13 +155,7 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
-                   <Link
-                      href="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className='text-xl font-medium transition-colors text-muted-foreground hover:text-primary'
-                    >
-                      Log In
-                    </Link>
+                   <UserNav />
                 </nav>
               </div>
             </SheetContent>

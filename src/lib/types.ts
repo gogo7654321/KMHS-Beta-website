@@ -26,12 +26,25 @@ export type Event = {
 };
 
 export type Member = {
-  id:string;
+  id: string;
   firstName: string;
   lastName: string;
   grade: number;
   email: string;
-  positionId: string;
+  totalHours?: number;
+};
+
+export type ServiceHourStatus = 'pending' | 'approved' | 'rejected';
+
+export type ServiceHour = {
+  id: string;
+  memberId: string;
+  eventName: string;
+  hours: number;
+  date: string;
+  description: string;
+  status: ServiceHourStatus;
+  submittedAt: string;
 };
 
 export type ServiceVolunteer = {
@@ -62,7 +75,7 @@ export type Admin = {
   id: string;
   firstName: string;
   lastName: string;
-  grade: number;
+  grade?: number;
   email: string;
   position: string;
   bio?: string;
