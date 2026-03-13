@@ -40,15 +40,15 @@ export default function MemberPortalPage() {
 
   // Protected query: Only run if we have a user AND a confirmed member profile to avoid permission ghosts
   const hoursQuery = useMemoFirebase(() => {
-    // SECURITY CRITICAL: This query MUST be filtered by memberId to match common member-level security rules.
-    if (!user || isMemberLoading || !memberData) return null;
+    // SECURITY CRITICAL: Wait for all loading states to settle before firing
+    if (!user || isMemberLoading || isAdminLoading || !memberData) return null;
     
     return query(
       collection(firestore, 'service-hours'),
       where('memberId', '==', user.uid),
       orderBy('date', 'desc')
     );
-  }, [firestore, user?.uid, memberData?.id, isMemberLoading]);
+  }, [firestore, user?.uid, memberData?.id, isMemberLoading, isAdminLoading]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
 

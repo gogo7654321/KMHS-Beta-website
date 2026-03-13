@@ -22,6 +22,8 @@ service cloud.firestore {
     }
 
     // --- GLOBAL SUPER ADMIN BYPASS ---
+    // Note: Specific collection matches can override this wildcard, 
+    // so we also include the check in specific blocks.
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -40,6 +42,7 @@ service cloud.firestore {
 
     match /service-hours/{hourId} {
       // Prioritize Super Admin at the top of the collection match
+      // to prevent "list" permission errors on unfiltered queries.
       allow read, write: if isSuperAdmin();
 
       // Explicitly handle list/query operations
