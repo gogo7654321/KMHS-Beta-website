@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Header } from '@/components/layout/header';
@@ -40,6 +41,20 @@ export default function RootLayout({
           'min-h-screen bg-background font-body text-foreground antialiased'
         )}
       >
+        {/* Google Analytics Tag */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-C5B5LH4Y20"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-C5B5LH4Y20');
+          `}
+        </Script>
         <FirebaseClientProvider>
           <div className="relative flex min-h-dvh flex-col">
             <Header />
