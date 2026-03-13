@@ -40,11 +40,14 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Prioritize Super Admin at the collection level to avoid wildcard loss
+      // Explicitly prioritize Super Admin at the top of the collection match
       allow read, write: if isSuperAdmin();
 
       // List allows queries filtered by the user's UID OR if the user is an admin
-      allow list: if isAdmin() || (isSignedIn() && request.auth.uid != null);
+      // Using query.limit as a common practice for performant listing rules
+      allow list: if isAdmin() || (isSignedIn() && request.query.limit <= 500 && request.auth.uid != null);
+      
+      // Get allows reading a specific document if you own it or are an admin
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       
       // Creation and updates

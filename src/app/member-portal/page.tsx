@@ -10,7 +10,7 @@ import type { Member, ServiceHour, Admin } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, ShieldAlert, Loader2, LayoutDashboard } from 'lucide-react';
+import { PlusCircle, Clock, Award, History, CheckCircle2, AlertCircle, Loader2, LayoutDashboard, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +41,8 @@ export default function MemberPortalPage() {
 
   // Protected query: Only run if we have a user AND a confirmed member profile to avoid permission ghosts
   const hoursQuery = useMemoFirebase(() => {
+    // SECURITY CRITICAL: This query MUST be filtered by memberId to match common member-level security rules.
+    // Even for Super Admins, a filtered query is safer and avoids rule evaluation complexities.
     if (!user || isMemberLoading || !memberData) return null;
     
     return query(
@@ -277,14 +279,4 @@ export default function MemberPortalPage() {
       </Card>
     </div>
   );
-}
-
-function ShieldAlert({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
-            <path d="M12 8v4"/>
-            <path d="M12 16h.01"/>
-        </svg>
-    );
 }
