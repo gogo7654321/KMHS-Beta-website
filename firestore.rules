@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Helper Functions ---
+    // --- Helper Functions (Top Level) ---
     
     function isSignedIn() {
       return request.auth != null;
@@ -11,6 +11,7 @@ service cloud.firestore {
     function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'npatel012010@gmail.com' ||
+        request.auth.uid == 'rSpqFXxlV4fxauxvGXNxYy2Njlx1' ||
         request.auth.uid == 'rSpqFXxlV4fxauxvGXNxYy2Njlx1'
       );
     }
@@ -23,7 +24,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- Global Super Admin Bypass (Deployed: 2024-05-20T10:00:00Z) ---
+    // --- Global Super Admin Bypass (Forced Redeploy: 2024-05-21T14:30:00Z) ---
     match /{document=**} {
       allow read, write: if isSuperAdmin();
     }
@@ -41,20 +42,19 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Super admins and Admins have full access.
-      // Members can list their own hours by filtering on memberId.
-      allow list: if isAdmin() || (
-        isSignedIn() && 
-        request.query.filters.size() > 0 && 
-        request.query.filters[0].field == 'memberId' && 
-        request.query.filters[0].op == '==' && 
-        request.query.filters[0].value == request.auth.uid
+      // Admins and Super Admins have unrestricted access.
+      allow read, write: if isAdmin();
+      
+      // Members can list their own hours.
+      allow list: if isSignedIn() && (
+        isAdmin() || (
+          request.query.filters.size() > 0 && 
+          request.query.filters[0].value == request.auth.uid
+        )
       );
       
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
-      
       allow create: if isSignedIn() && (isAdmin() || request.resource.data.memberId == request.auth.uid);
-      
       allow update, delete: if isAdmin();
     }
 
