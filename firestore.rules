@@ -29,7 +29,8 @@ service cloud.firestore {
     // --- Collection Specific Rules ---
 
     match /admin/{userId} {
-      allow read: if isSignedIn();
+      // Leadership profiles MUST be public so guests can see the team.
+      allow read: if true;
       allow write: if isSuperAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
@@ -39,7 +40,7 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Super Admin bypass MUST be first within the collection block
+      // Priority Super Admin bypass for list/write operations
       allow read, write: if isSuperAdmin();
 
       // Explicitly handle list/query operations
