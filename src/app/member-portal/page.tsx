@@ -176,11 +176,9 @@ export default function MemberPortalPage() {
                     </Link>
                 </Button>
             )}
-            <Button asChild className="font-bold">
-                <Link href="/member-portal/log-hours">
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Log Hours
-                </Link>
+            <Button disabled className="font-bold opacity-70 cursor-not-allowed">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Log Hours (Coming Soon)
             </Button>
         </div>
       </div>
@@ -265,9 +263,7 @@ export default function MemberPortalPage() {
           ) : (
             <div className="text-center py-24 border-2 border-dashed rounded-lg bg-secondary/5">
               <p className="text-muted-foreground text-lg font-medium">No service history yet.</p>
-              <Button asChild variant="outline" className="mt-4">
-                <Link href="/member-portal/log-hours">Log Your First Activity</Link>
-              </Button>
+              <Button disabled variant="outline" className="mt-4">Logging Coming Soon</Button>
             </div>
           )}
         </CardContent>

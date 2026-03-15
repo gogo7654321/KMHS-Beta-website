@@ -21,11 +21,6 @@ service cloud.firestore {
       return isSuperAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admin/$(request.auth.uid)));
     }
 
-    // --- GLOBAL SUPER ADMIN BYPASS ---
-    match /{document=**} {
-      allow read, write: if isSuperAdmin();
-    }
-
     // --- Collection Specific Rules ---
 
     match /admin/{userId} {
@@ -40,7 +35,7 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Priority Super Admin bypass for list/write operations
+      // Priority Super Admin bypass for this specific collection to solve evaluation order issues
       allow read, write: if isSuperAdmin();
 
       // Explicitly handle list/query operations
@@ -70,8 +65,8 @@ service cloud.firestore {
 
     // Default catch-all
     match /{document=**} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read: if isSignedIn() || isSuperAdmin();
+      allow write: if isAdmin() || isSuperAdmin();
     }
   }
 }
