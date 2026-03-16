@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils';
 
 function LeadershipSkeleton() {
   return (
-    <Card className="group overflow-hidden rounded-lg bg-card text-center">
+    <Card className="group overflow-hidden rounded-lg bg-card text-center border">
       <div className="aspect-[4/5] w-full overflow-hidden bg-secondary">
         <Skeleton className="h-full w-full" />
       </div>
@@ -61,34 +61,29 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
     try {
       hostname = new URL(admin.personalUrl).hostname;
     } catch (e) {
-      console.error("Invalid personal URL for admin:", admin.email);
+      // Quietly handle invalid URLs
     }
   }
 
   return (
     <Card className={cn(
-      "group relative flex flex-col overflow-hidden rounded-lg bg-card text-center transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-2",
-      "opacity-0 animate-fade-in",
-      !isSuperAdmin && "[animation-delay:500ms]",
-      isSuperAdmin && "shadow-[0_0_35px_8px_#3b82f6bf] transition-shadow duration-300 hover:shadow-[0_0_50px_15px_#3b82f6]"
+      "group relative flex flex-col overflow-hidden rounded-lg bg-card text-center transition-all duration-300 border",
+      "hover:shadow-primary/20 hover:-translate-y-2",
+      isSuperAdmin && "shadow-[0_0_20px_5px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_10px_rgba(59,130,246,0.5)]"
     )}>
       {isDraggable && (
-        <div className="absolute top-2 right-2 cursor-grab touch-none text-muted-foreground opacity-50 transition-opacity group-hover:opacity-100">
-          <GripVertical />
+        <div className="absolute top-2 right-2 cursor-grab touch-none text-muted-foreground opacity-50 transition-opacity group-hover:opacity-100 z-10">
+          <GripVertical className="h-5 w-5" />
         </div>
       )}
-      <div className={cn(
-        "aspect-[4/5] w-full overflow-hidden bg-secondary"
-      )}>
+      <div className="aspect-[4/5] w-full overflow-hidden bg-secondary relative">
         <Image
           src={admin.imageUrl || defaultAvatar?.imageUrl || ''}
           alt={`Portrait of ${admin.firstName} ${admin.lastName}`}
           data-ai-hint="professional headshot"
-          width={400}
-          height={500}
-          quality={100}
-          priority={isSuperAdmin}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
       <CardHeader>
@@ -98,19 +93,17 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
         )}>
           {fullName}
         </CardTitle>
-        <CardDescription className={cn(
-          "font-semibold text-primary min-h-[24px] flex justify-center items-center",
-        )}>
+        <CardDescription className="font-semibold text-primary min-h-[24px] flex justify-center items-center">
           {position}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-grow flex-col px-6 pb-6">
         <p className="flex-grow text-sm text-muted-foreground min-h-[50px]">
-            {bio}
+          {bio}
         </p>
         <p className="mt-4 text-xs font-bold text-foreground/90">Grade: {admin.grade}</p>
         {isSuperAdmin && admin.personalUrl && (
-          <Button asChild className="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 font-headline font-bold tracking-wide text-base text-primary-foreground opacity-90 hover:opacity-100 transition-opacity">
+          <Button asChild className="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 font-headline font-bold tracking-wide text-primary-foreground">
             <Link href={admin.personalUrl} target="_blank" rel="noopener noreferrer">
               {hostname ? (
                 <Image 
@@ -118,13 +111,12 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
                   alt={`${hostname} favicon`}
                   width={16}
                   height={16}
-                  quality={100}
                   className="mr-2 h-4 w-4 rounded-sm"
                 />
               ) : (
                 <LinkIcon className="mr-2 h-4 w-4" />
               )}
-              Studizilla
+              View Portfolio
             </Link>
           </Button>
         )}
@@ -132,7 +124,6 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
     </Card>
   );
 }
-
 
 function SortableAdminCard({ admin }: { admin: Admin }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: admin.id });
@@ -206,36 +197,9 @@ export default function LeadershipPage() {
     }
   }
 
-  const content = () => {
-    if (isLoading) {
-      return Array.from({ length: 6 }).map((_, i) => <LeadershipSkeleton key={i} />);
-    }
-    if (!adminItems?.length) {
-      return (
-        <div className="col-span-full py-16 text-center">
-          <p className="text-xl text-muted-foreground">Leadership information is not yet available.</p>
-        </div>
-      );
-    }
-
-    if (isSuperAdminViewer) {
-      return (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={adminItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-            {adminItems.map(admin => (
-              <SortableAdminCard key={admin.id} admin={admin} />
-            ))}
-          </SortableContext>
-        </DndContext>
-      );
-    }
-
-    return adminItems.map(admin => <AdminCard key={admin.id} admin={admin} isDraggable={false} />);
-  };
-
   return (
     <div className="container mx-auto px-4 py-12 md:px-6">
-      <div className="mb-8 text-center">
+      <div className="mb-12 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
           Our Leadership Team
         </h1>
@@ -246,13 +210,33 @@ export default function LeadershipPage() {
 
       {isSuperAdminViewer && hasChanges && (
         <div className="mb-8 flex justify-center">
-          <Button size="lg" onClick={handleSaveOrder}>
-            Save Order
+          <Button size="lg" onClick={handleSaveOrder} className="font-bold">
+            Save New Order
           </Button>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">{content()}</div>
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <LeadershipSkeleton key={i} />)
+        ) : adminItems.length > 0 ? (
+          isSuperAdminViewer ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={adminItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                {adminItems.map(admin => (
+                  <SortableAdminCard key={admin.id} admin={admin} />
+                ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            adminItems.map(admin => <AdminCard key={admin.id} admin={admin} isDraggable={false} />)
+          )
+        ) : (
+          <div className="col-span-full py-16 text-center border-2 border-dashed rounded-xl">
+            <p className="text-xl text-muted-foreground font-medium">No leadership members listed yet.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
