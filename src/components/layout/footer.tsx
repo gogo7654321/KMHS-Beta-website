@@ -27,7 +27,7 @@ export function Footer() {
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <Link href="#" aria-label="Instagram">
+                <Link href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
                 </Link>
               </Button>

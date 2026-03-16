@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, ListPlus } from 'lucide-react';
+import { Shield, ListPlus, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const resources = [
@@ -10,6 +10,14 @@ const resources = [
     href: '/faq/bylaws',
     icon: Shield,
     disabled: false,
+  },
+  {
+    title: 'Instagram Updates',
+    description: 'Follow our official page @kmhsbetaclub for the latest news and photos.',
+    href: 'https://www.instagram.com/kmhsbetaclub',
+    icon: Instagram,
+    disabled: false,
+    external: true,
   },
   {
     title: 'Log Service Hours',
@@ -34,12 +42,12 @@ export default function FaqPage() {
       <div className="space-y-6">
         {resources.map((resource) => {
           const Icon = resource.icon;
-          const Wrapper = resource.disabled ? 'div' : Link;
+          const Wrapper = resource.disabled ? 'div' : (resource.external ? 'a' : Link);
 
           return (
             <Wrapper
               key={resource.title}
-              {...(!resource.disabled && { href: resource.href })}
+              {...(resource.disabled ? {} : { href: resource.href, ...(resource.external ? { target: "_blank", rel: "noopener noreferrer" } : {}) })}
               className={cn(
                 "block",
                 resource.disabled && "cursor-not-allowed"

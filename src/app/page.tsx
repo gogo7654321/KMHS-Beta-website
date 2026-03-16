@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { benefits } from '@/lib/data';
-import { MoveRight, Megaphone } from 'lucide-react';
+import { MoveRight, Megaphone, Instagram } from 'lucide-react';
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { Admin, HomePageContent } from '@/lib/types';
@@ -78,11 +78,18 @@ export default function Home() {
             <p className="mt-2 max-w-2xl text-md text-foreground/70 md:text-lg">
               Fostering academic achievement, character, leadership, and service within our community.
             </p>
-            <Button asChild size="lg" className="mt-8 group text-lg">
-              <Link href="/events">
-                Explore Events <MoveRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <Button asChild size="lg" className="group text-lg">
+                <Link href="/events">
+                  Explore Events <MoveRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="group text-lg border-primary text-primary hover:bg-primary/10">
+                <a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer">
+                  Follow Us <Instagram className="ml-2 h-5 w-5" />
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
@@ -116,6 +123,24 @@ export default function Home() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Social Call to Action */}
+      <section className="w-full py-20 bg-secondary/20">
+        <div className="container mx-auto px-4 text-center">
+          <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-4 text-primary mb-6">
+            <Instagram className="h-8 w-8" />
+          </div>
+          <h2 className="font-headline text-3xl font-bold mb-4">Stay Connected</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto mb-8">
+            Don't miss out on chapter updates, event photos, and community service highlights. Follow our journey on Instagram.
+          </p>
+          <Button asChild size="lg" className="font-bold">
+            <a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer">
+              Follow @kmhsbetaclub
+            </a>
+          </Button>
         </div>
       </section>
     </div>
