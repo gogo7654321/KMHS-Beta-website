@@ -8,7 +8,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Absolute Super Admin Check
+    // Absolute Super Admin Check (Root Bypass)
     function isSuperAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'npatel012010@gmail.com' ||
@@ -63,7 +63,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Default catch-all
+    // Default catch-all (Must remain below prioritized collection matches)
     match /{document=**} {
       allow read: if isSignedIn() || isSuperAdmin();
       allow write: if isAdmin() || isSuperAdmin();

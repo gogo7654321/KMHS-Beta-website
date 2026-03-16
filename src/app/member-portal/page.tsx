@@ -176,7 +176,7 @@ export default function MemberPortalPage() {
                     </Link>
                 </Button>
             )}
-            <Button disabled className="font-bold opacity-70 cursor-not-allowed">
+            <Button disabled className="font-bold bg-muted text-muted-foreground border-2 border-dashed">
                 <PlusCircle className="mr-2 h-5 w-5" />
                 Log Hours (Coming Soon)
             </Button>
