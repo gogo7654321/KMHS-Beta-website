@@ -101,7 +101,11 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
         <p className="flex-grow text-sm text-muted-foreground min-h-[50px]">
           {bio}
         </p>
-        <p className="mt-4 text-xs font-bold text-foreground/90">Grade: {admin.grade}</p>
+        {admin.grade && (
+          <p className="mt-4 text-xs font-bold text-foreground/90 uppercase tracking-widest">
+            Grade {admin.grade}
+          </p>
+        )}
         {isSuperAdmin && admin.personalUrl && (
           <Button asChild className="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 font-headline font-bold tracking-wide text-primary-foreground">
             <Link href={admin.personalUrl} target="_blank" rel="noopener noreferrer">

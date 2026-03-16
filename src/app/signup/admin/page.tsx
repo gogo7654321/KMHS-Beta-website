@@ -27,6 +27,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +37,11 @@ const signupSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  grade: z.coerce.number().min(9, "Grade 9-12").max(12, "Grade 9-12"),
+  grade: z.union([
+    z.coerce.number().min(9, "Grade 9-12").max(12, "Grade 9-12"),
+    z.literal(''),
+    z.null()
+  ]).optional(),
   position: z.string().min(1, 'Position is required'),
 });
 
@@ -56,7 +61,7 @@ export default function AdminSignupPage() {
       lastName: '',
       email: '',
       password: '',
-      grade: 10,
+      grade: undefined,
       position: '',
     },
   });
@@ -74,7 +79,7 @@ export default function AdminSignupPage() {
           firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
-          grade: data.grade,
+          grade: data.grade ? Number(data.grade) : null,
           position: data.position,
           order: 99,
           bio: '',
@@ -118,7 +123,7 @@ export default function AdminSignupPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Leadership Registration</CardTitle>
           <CardDescription>
-            Create an officer account for the KMHS Beta chapter.
+            Create an officer or advisor account for the KMHS Beta chapter.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -157,7 +162,7 @@ export default function AdminSignupPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Officer Email</FormLabel>
+                    <FormLabel>Work/Officer Email</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="officer@example.com" {...field} />
                     </FormControl>
@@ -184,10 +189,11 @@ export default function AdminSignupPage() {
                   name="grade"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Grade</FormLabel>
+                      <FormLabel>Grade (Optional)</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
+                        <Input type="number" placeholder="9-12" {...field} value={field.value || ''} />
                       </FormControl>
+                      <FormDescription>Leave blank for Faculty Advisors.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -199,7 +205,7 @@ export default function AdminSignupPage() {
                     <FormItem>
                       <FormLabel>Position</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Treasurer" {...field} />
+                        <Input placeholder="e.g. Faculty Advisor" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
