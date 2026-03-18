@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -56,6 +57,9 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
   const position = admin.position;
   const bio = admin.bio || 'No bio available.';
 
+  // Safety fallback for images to prevent renderer crashes
+  const profileImage = admin.imageUrl || defaultAvatar?.imageUrl || 'https://placehold.co/400x500?text=Portrait';
+
   let hostname: string | null = null;
   if (isSuperAdmin && admin.personalUrl) {
     try {
@@ -78,8 +82,8 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
       )}
       <div className="aspect-[4/5] w-full overflow-hidden bg-secondary relative">
         <Image
-          src={admin.imageUrl || defaultAvatar?.imageUrl || ''}
-          alt={`Portrait of ${admin.firstName} ${admin.lastName}`}
+          src={profileImage}
+          alt={`Portrait of ${fullName}`}
           data-ai-hint="professional headshot"
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
@@ -110,7 +114,8 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
           <Button asChild className="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 font-headline font-bold tracking-wide text-primary-foreground">
             <Link href={admin.personalUrl} target="_blank" rel="noopener noreferrer">
               {hostname ? (
-                <Image 
+                /* Using plain <img> for dynamic favicon to prevent Next.js image optimization crashes on external domains */
+                <img 
                   src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`}
                   alt={`${hostname} favicon`}
                   width={16}
