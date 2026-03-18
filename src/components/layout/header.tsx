@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,7 +26,7 @@ function Logos() {
   return (
     <Link href="/" className="flex items-center gap-3" aria-label="Home">
       {betaLogo && <Image src={betaLogo.imageUrl} alt="Logo" width={45} height={45} priority className="h-10 w-auto" />}
-      <span className="hidden font-headline text-xl font-bold text-primary sm:block">KMHS Beta</span>
+      <span className="hidden font-headline text-xl font-bold text-primary sm:block">Kennesaw Mountain Beta</span>
     </Link>
   );
 }

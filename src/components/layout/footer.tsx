@@ -14,7 +14,7 @@ export function Footer() {
           <div className="flex items-center gap-3">
              {betaLogo && <Image src={betaLogo.imageUrl} alt="Beta Club Logo" width={45} height={45} className="h-10 w-auto" />}
             <div className="text-center sm:text-left">
-              <p className="font-headline text-lg font-bold text-primary">KMHS Beta</p>
+              <p className="font-headline text-lg font-bold text-primary">Kennesaw Mountain High School Beta</p>
               <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} All rights reserved.</p>
               <p className="text-xs text-muted-foreground mt-1">Website by Neil Mendpara</p>
             </div>

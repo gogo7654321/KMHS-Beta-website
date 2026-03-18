@@ -69,14 +69,17 @@ export default function Home() {
       <section className="relative w-full overflow-hidden bg-gradient-to-b from-background to-secondary pt-32 pb-40">
         <div className="container mx-auto px-4 md:px-6">
           <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-primary-foreground">
-            <h1 className="font-headline text-5xl font-black tracking-tighter text-primary sm:text-7xl lg:text-8xl xl:text-9xl drop-shadow-[0_2px_4px_rgba(251,191,36,0.2)]">
-              KMHS BETA
+            <h2 className="font-headline text-lg font-bold tracking-widest text-primary/80 uppercase mb-4">
+              Kennesaw Mountain High School
+            </h2>
+            <h1 className="font-headline text-6xl font-black tracking-tighter text-primary sm:text-8xl lg:text-9xl drop-shadow-[0_2px_4px_rgba(251,191,36,0.2)]">
+              BETA CLUB
             </h1>
             <p className="mt-4 max-w-3xl text-lg font-semibold text-foreground/90 md:text-xl">
               Lead by Serving Others.
             </p>
             <p className="mt-2 max-w-2xl text-md text-foreground/70 md:text-lg">
-              Fostering academic achievement, character, leadership, and service within our community.
+              Fostering academic achievement, character, leadership, and service within the Kennesaw Mountain community.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg" className="group text-lg">
@@ -102,7 +105,7 @@ export default function Home() {
               Why Join Beta?
             </h2>
             <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-              Unlock your potential and make a difference.
+              Unlock your potential and make a difference at Kennesaw Mountain High School.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">

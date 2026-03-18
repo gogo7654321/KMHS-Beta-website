@@ -8,8 +8,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'KMHS Beta',
-  description: 'The official website for the KMHS Beta Club.',
+  title: 'Kennesaw Mountain High School Beta',
+  description: 'The official website for the Kennesaw Mountain High School Beta Club chapter.',
   icons: {
     icon: [
       { url: '/kmhs%20beta%20club%20logo.png' },

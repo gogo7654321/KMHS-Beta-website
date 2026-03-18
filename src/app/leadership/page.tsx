@@ -210,10 +210,10 @@ export default function LeadershipPage() {
     <div className="container mx-auto px-4 py-12 md:px-6">
       <div className="mb-12 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-          Our Leadership Team
+          Kennesaw Mountain High School Beta Leadership
         </h1>
         <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-          Meet the dedicated students and faculty advisors leading our chapter to success.
+          Meet the dedicated students and faculty advisors leading our Kennesaw Mountain High School chapter.
         </p>
       </div>
 

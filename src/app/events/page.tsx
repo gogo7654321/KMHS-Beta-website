@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -220,10 +219,10 @@ export default function EventsPage() {
       <div className="flex flex-col items-center justify-between gap-4 mb-12 text-center sm:flex-row sm:text-left">
         <div>
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            KMHS Beta Events
+            Chapter Events
             </h1>
             <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-            Find out what&apos;s happening and view our chapter history.
+            Stay updated with Kennesaw Mountain High School Beta activities and achievements.
             </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -231,14 +230,14 @@ export default function EventsPage() {
                 <PopoverTrigger asChild>
                     <Button variant="outline" size="lg" className="gap-2">
                         <Share2 className="h-5 w-5" />
-                        Subscribe to Calendar
+                        Sync Calendar
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 space-y-4">
                     <div className="space-y-2">
-                        <h4 className="font-bold leading-none">Calendar Sync</h4>
+                        <h4 className="font-bold leading-none">Live Sync</h4>
                         <p className="text-sm text-muted-foreground">
-                            Automatically sync KMHS Beta events to your personal calendar.
+                            Automatically sync Kennesaw Mountain Beta events to your device.
                         </p>
                     </div>
                     <div className="grid gap-2">
