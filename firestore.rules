@@ -36,36 +36,38 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Priority Super Admin bypass for this specific collection to solve evaluation order issues
+      // Priority Super Admin bypass
       allow read, write: if isSuperAdmin();
 
-      // Explicitly handle list/query operations
+      // Explicitly handle list/query operations for relevant users
       allow list: if isAdmin() || (isSignedIn() && request.auth.uid != null);
       
-      // Get/Write allows reading a specific document if you own it or are an admin
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
-      
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.memberId == request.auth.uid);
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending');
     }
 
     match /blogs/{blogId} {
-      allow read: if true;
+      // Blogs are public for SEO and AdSense
+      allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /events/{eventId} {
-      allow read: if true;
+      // Events are public for student information
+      allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /siteContent/{docId} {
-      allow read: if true;
+      // General site text like gallery settings or home announcements
+      allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /photos/{photoId} {
-      allow read: if true;
+      // Gallery photos are public
+      allow read, list: if true;
       allow write: if isAdmin();
     }
 
