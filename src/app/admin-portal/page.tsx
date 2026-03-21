@@ -1,4 +1,3 @@
-
 'use client';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -200,9 +199,12 @@ export default function AdminPortalPage() {
   }, [user, isUserLoading, router]);
 
   if (isUserLoading || isAdminLoading) return <div className="container py-24 text-center">Verifying credentials...</div>;
-  if (!user || !adminData) return null;
+  if (!user) return null;
 
-  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
+  
+  // Guard for non-admins (Super admins allowed even if missing admin profile)
+  if (!adminData && !isSuperAdmin) return <div className="container py-24 text-center">Access Restricted.</div>;
 
   return (
     <div className="container mx-auto py-12 px-4">
@@ -211,7 +213,7 @@ export default function AdminPortalPage() {
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-4xl font-bold font-headline">Admin Portal</h1>
-                        <p className="mt-2 text-muted-foreground">Managing {adminData.firstName}'s Chapter Operations</p>
+                        <p className="mt-2 text-muted-foreground">Managing {adminData?.firstName || 'the Chapter'}'s Operations</p>
                     </div>
                     <Button variant="outline" asChild>
                         <Link href="/member-portal" className="gap-2"><LayoutDashboard className="h-4 w-4" /> Member Dashboard</Link>

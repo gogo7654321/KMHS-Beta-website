@@ -89,8 +89,9 @@ export function useCollection<T = any>(
           setError(contextualError)
           errorEmitter.emit('permission-error', contextualError);
         } else {
-          // Log other errors (like missing index) to console for debugging
-          console.error('[Firestore Collection Error]:', firestoreError);
+          // Log other errors (like missing index) to console using warn to avoid Next.js error overlay crash
+          // structured logs are easier to read and include the index creation URL.
+          console.warn('[Firestore Collection Note]: A non-permission error occurred. This is often due to a missing composite index. Check the link in the message below:', firestoreError);
           setError(firestoreError);
         }
         

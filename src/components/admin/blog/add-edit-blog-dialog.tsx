@@ -55,6 +55,8 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
   const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
   const { data: adminData } = useDoc<Admin>(adminDocRef);
 
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
+
   const form = useForm<BlogFormValues>({
     resolver: zodResolver(blogFormSchema),
     defaultValues: {
@@ -110,13 +112,17 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
   };
 
   const onSubmit = async (data: BlogFormValues) => {
-    if (!user || !adminData) {
-        toast({ variant: 'destructive', title: 'Action Denied', description: 'Admin identity not verified.' });
+    if (!user || (!adminData && !isSuperAdmin)) {
+        toast({ variant: 'destructive', title: 'Action Denied', description: 'Administrative identity not verified.' });
         return;
     }
     
     setIsLoading(true);
     try {
+      const authorName = adminData 
+        ? `${adminData.firstName} ${adminData.lastName}` 
+        : (user.displayName || user.email || 'Administrator');
+
       const blogData: Omit<BlogPost, 'id'> = {
         title: data.title,
         content: data.content,
@@ -124,7 +130,7 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
         tags: data.tags.split(',').map(t => t.trim()).filter(t => t !== ''),
         imageUrl: data.imageUrl,
         imageCaption: data.imageCaption,
-        authorName: `${adminData.firstName} ${adminData.lastName}`,
+        authorName: authorName,
         createdAt: post?.createdAt || new Date().toISOString(),
       };
 

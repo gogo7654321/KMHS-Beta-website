@@ -1,7 +1,6 @@
-
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -17,11 +16,22 @@ import { AddEditBlogDialog } from '@/components/admin/blog/add-edit-blog-dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Pencil, Trash2, PlusCircle, BookOpen, ExternalLink, ChevronLeft, Zap, Target } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminBlogManagement() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
+
+  const adminDocRef = useMemoFirebase(() => user ? doc(firestore, 'admin', user.uid) : null, [firestore, user]);
+  const { data: adminData, isLoading: isAdminLoading } = useDoc<Admin>(adminDocRef);
+
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
+
+  useEffect(() => {
+    if (!isUserLoading && !user) router.push('/login/admin');
+  }, [user, isUserLoading, router]);
 
   const blogQuery = useMemoFirebase(() => query(collection(firestore, 'blogs'), orderBy('createdAt', 'desc')), [firestore]);
   const { data: posts, isLoading } = useCollection<BlogPost>(blogQuery);
@@ -38,6 +48,9 @@ export default function AdminBlogManagement() {
     "The Impact of Community Service in Kennesaw, Georgia",
     "KMHS Student Leadership: Meet the Beta Club Officers"
   ];
+
+  if (isUserLoading || isAdminLoading) return <div className="container py-24 text-center">Verifying permissions...</div>;
+  if (!user || (!adminData && !isSuperAdmin)) return null;
 
   return (
     <div className="container mx-auto py-12 px-4 space-y-8">
