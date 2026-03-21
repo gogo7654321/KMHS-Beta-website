@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { benefits } from '@/lib/data';
 import { MoveRight, Megaphone, Instagram } from 'lucide-react';
-import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { Admin, HomePageContent } from '@/lib/types';
+import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import type { Admin, HomePageContent, BlogPost } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnnouncementEditor } from '@/components/home/announcement-editor';
+import Image from 'next/image';
+import { format } from 'date-fns';
 
 function AnnouncementBar() {
   const firestore = useFirestore();
@@ -61,6 +63,97 @@ function AnnouncementBar() {
   );
 }
 
+function RecentStories() {
+  const firestore = useFirestore();
+  
+  // Fetch more than 3 to account for potential draft filtering in-memory
+  const storiesQuery = useMemoFirebase(() =>
+    query(collection(firestore, 'blogs'), orderBy('createdAt', 'desc'), limit(10)),
+    [firestore]
+  );
+  
+  const { data: allStories, isLoading } = useCollection<BlogPost>(storiesQuery);
+
+  const publishedStories = allStories?.filter(s => s.status === 'published').slice(0, 3);
+
+  if (isLoading) {
+    return (
+      <section className="w-full py-20 bg-secondary/10">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="h-64 w-full bg-card/50">
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-40 w-full" />
+                  <Skeleton className="h-6 w-3/4" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!publishedStories || publishedStories.length === 0) return null;
+
+  return (
+    <section className="w-full py-20 bg-secondary/10">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-4">
+          <div className="text-center md:text-left">
+            <h2 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">Recent Stories</h2>
+            <p className="mt-4 text-muted-foreground text-sm md:text-base">Impact highlights from Kennesaw Mountain High School Beta.</p>
+          </div>
+          <Button asChild variant="outline" className="font-bold group border-primary/50 text-primary hover:bg-primary/5">
+            <Link href="/blog">
+              View All Posts <MoveRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {publishedStories.map((post) => (
+            <Link href={`/blog/${post.id}`} key={post.id} className="group">
+              <Card className="h-full overflow-hidden border-border/50 bg-background transition-all hover:border-primary/50 hover:shadow-lg">
+                <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                  {post.imageUrl ? (
+                    <Image
+                      src={post.imageUrl}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-secondary">
+                      <Megaphone className="h-12 w-12 text-muted-foreground opacity-20" />
+                    </div>
+                  )}
+                </div>
+                <CardHeader className="p-6">
+                  <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest text-primary mb-2">
+                    {post.tags?.[0] || 'Chapter News'}
+                  </div>
+                  <CardTitle className="line-clamp-2 font-headline text-xl leading-tight group-hover:text-primary transition-colors">
+                    {post.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-6 pb-6 pt-0">
+                   <p className="line-clamp-2 text-sm text-muted-foreground mb-4 opacity-80">
+                    {post.content.replace(/[#*`]/g, '').substring(0, 100)}...
+                  </p>
+                  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 border-t border-border/50 pt-4">
+                    {format(new Date(post.createdAt), 'MMMM d, yyyy')}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   return (
@@ -128,6 +221,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <RecentStories />
 
       {/* Social Call to Action */}
       <section className="w-full py-20 bg-secondary/20">
