@@ -6,14 +6,17 @@ service firebase.storage {
 
     // Helper function to check for Super Admin status.
     function isSuperAdmin() {
-      return request.auth != null && request.auth.token.email == 'npatel012010@gmail.com';
+      return request.auth != null && (
+        request.auth.token.email == 'npatel012010@gmail.com' ||
+        request.auth.uid == 'rSpqFXxlV4fxauxvGXNxYy2Njlx1'
+      );
     }
 
     // Helper function to check for admin status in Storage rules.
     // It checks if the user is authenticated with an email, which in this app's
     // structure, means they are an admin.
     function isAdmin() {
-      return request.auth != null && request.auth.token.email != null;
+      return isSuperAdmin() || (request.auth != null && request.auth.token.email != null);
     }
 
     // Rules for all files within the admin-avatars directory.
@@ -35,6 +38,14 @@ service firebase.storage {
       // Allow public read access for all gallery images.
       allow read: if true;
       // Allow write access (create, update, delete) for admins.
+      allow write: if isAdmin();
+    }
+
+    // Rules for blog images.
+    match /blog-images/{allPaths=**} {
+      // Allow public read access for blog content images.
+      allow read: if true;
+      // Allow write access for administrators.
       allow write: if isAdmin();
     }
   }
