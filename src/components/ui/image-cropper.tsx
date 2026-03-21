@@ -40,17 +40,20 @@ export function ImageCropper({ image, aspect, onCropComplete, onCancel, circular
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[600px] z-[100]">
+      <DialogContent className="sm:max-w-[650px] z-[100]">
         <DialogHeader>
           <DialogTitle>Crop & Adjust</DialogTitle>
-          <DialogDescription>Zoom and drag to frame the image perfectly.</DialogDescription>
+          <DialogDescription>Zoom and drag to frame the image. You can now zoom out past margins for more creative control.</DialogDescription>
         </DialogHeader>
-        <div className="relative h-[400px] w-full bg-black rounded-md overflow-hidden">
+        <div className="relative h-[450px] w-full bg-black rounded-md overflow-hidden">
           <Cropper
             image={image}
             crop={crop}
             zoom={zoom}
             aspect={aspect}
+            minZoom={0.5}
+            maxZoom={10}
+            restrictPosition={false}
             cropShape={circular ? 'round' : 'rect'}
             showGrid={!circular}
             onCropChange={setCrop}
@@ -61,13 +64,13 @@ export function ImageCropper({ image, aspect, onCropComplete, onCancel, circular
         <div className="py-4 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-                <span className="font-medium text-muted-foreground">Zoom</span>
-                <span className="text-xs">{Math.round(zoom * 100)}%</span>
+                <span className="font-medium text-muted-foreground">Zoom Level</span>
+                <span className="text-xs font-mono">{zoom.toFixed(2)}x</span>
             </div>
             <Slider
                 value={[zoom]}
-                min={1}
-                max={3}
+                min={0.5}
+                max={10}
                 step={0.01}
                 onValueChange={([val]) => setZoom(val)}
             />
@@ -75,9 +78,9 @@ export function ImageCropper({ image, aspect, onCropComplete, onCancel, circular
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={onCancel} disabled={isProcessing}>Cancel</Button>
-          <Button onClick={handleCrop} disabled={isProcessing}>
+          <Button onClick={handleCrop} disabled={isProcessing} className="bg-primary font-bold">
             {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Crop
+            Apply Crop
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -99,6 +102,10 @@ async function getCroppedImg(imageSrc: string, pixelCrop: any): Promise<Blob> {
   const ctx = canvas.getContext('2d');
 
   if (!ctx) throw new Error('No 2d context');
+
+  // Set background to white for transparent images when cropping past margins
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.drawImage(
     image,
