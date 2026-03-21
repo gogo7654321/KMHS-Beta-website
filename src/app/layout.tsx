@@ -8,8 +8,14 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'Kennesaw Mountain High School Beta',
-  description: 'The official website for the Kennesaw Mountain High School Beta Club chapter.',
+  title: {
+    default: 'Kennesaw Mountain High School Beta Club | Service & Leadership',
+    template: '%s | Kennesaw Mountain High School Beta'
+  },
+  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. Fostering service, character, and academic achievement in Kennesaw, Georgia and Cobb County.',
+  keywords: ['Kennesaw Mountain High School', 'KMHS', 'Beta Club', 'Kennesaw GA', 'Cobb County Schools', 'Service Hours', 'High School Volunteering', 'Kennesaw Student Leadership'],
+  authors: [{ name: 'Kennesaw Mountain Beta' }],
+  creator: 'Kennesaw Mountain High School',
   icons: {
     icon: [
       { url: '/kmhs%20beta%20club%20logo.png' },
@@ -18,6 +24,15 @@ export const metadata: Metadata = {
     ],
     shortcut: '/kmhs%20beta%20club%20logo.png',
     apple: '/kmhs%20beta%20club%20logo.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://kmhsbeta.com',
+    siteName: 'Kennesaw Mountain High School Beta Club',
+    title: 'Kennesaw Mountain High School Beta Club',
+    description: 'Lead by Serving Others at Kennesaw Mountain High School.',
+    images: [{ url: '/kmhs%20beta%20club%20logo.png', width: 800, height: 600, alt: 'KMHS Beta Logo' }],
   },
 };
 
