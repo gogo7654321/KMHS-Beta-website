@@ -5,7 +5,7 @@ import { firebaseConfig } from '@/firebase/config';
 
 /**
  * Generates a dynamic sitemap.xml for Google Search Console.
- * Includes static pages and all published blog posts.
+ * High frequency and priority settings ensure KMHS content stays at the top of search.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kmhsbeta.com';
@@ -26,30 +26,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .map(post => ({
         url: `${baseUrl}/blog/${post.id}`,
         lastModified: new Date(post.createdAt),
-        changeFrequency: 'monthly' as const,
-        priority: 0.7,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
       }));
   } catch (error) {
     console.error('Sitemap Generation: Could not fetch blogs', error);
   }
 
-  // Define static routes
-  const staticRoutes = [
-    '',
-    '/blog',
-    '/events',
-    '/leadership',
-    '/service-hours',
-    '/gallery',
-    '/contact',
-    '/faq',
-    '/faq/bylaws',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1 : 0.8,
-  }));
+  // Define static routes with targeted SEO priorities
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/leadership`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/service-hours`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: `${baseUrl}/gallery`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/faq/bylaws`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  ];
 
   return [...staticRoutes, ...blogUrls];
 }

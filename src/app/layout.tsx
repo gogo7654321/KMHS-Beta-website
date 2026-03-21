@@ -12,8 +12,23 @@ export const metadata: Metadata = {
     default: 'Kennesaw Mountain High School Beta Club | Service & Leadership',
     template: '%s | Kennesaw Mountain High School Beta'
   },
-  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. Fostering service, character, and academic achievement in Kennesaw, Georgia and Cobb County.',
-  keywords: ['Kennesaw Mountain High School', 'KMHS', 'Beta Club', 'Kennesaw GA', 'Cobb County Schools', 'Service Hours', 'High School Volunteering', 'Kennesaw Student Leadership'],
+  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. Home of the KMHS Magnet program for Mathematics, Medical, and Engineering. Fostering service, character, and academic achievement in Kennesaw, Georgia and Cobb County.',
+  keywords: [
+    'Kennesaw Mountain High School', 
+    'KMHS', 
+    'Beta Club', 
+    'Kennesaw GA', 
+    'Cobb County Schools', 
+    'Service Hours', 
+    'High School Volunteering', 
+    'Kennesaw Student Leadership',
+    'KMHS Magnet Program',
+    'Academy of Mathematics Medical and Engineering',
+    'KMHS Clubs',
+    'Extracurriculars Kennesaw Mountain',
+    'National Beta Club Georgia',
+    'Student Organizations Cobb County'
+  ],
   authors: [{ name: 'Kennesaw Mountain Beta' }],
   creator: 'Kennesaw Mountain High School',
   icons: {
@@ -30,10 +45,16 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://kmhsbeta.com',
     siteName: 'Kennesaw Mountain High School Beta Club',
-    title: 'Kennesaw Mountain High School Beta Club',
-    description: 'Lead by Serving Others at Kennesaw Mountain High School.',
+    title: 'Kennesaw Mountain High School Beta Club | Lead by Serving Others',
+    description: 'Serving the Kennesaw Mountain High School community and the Magnet program. Track service hours, join events, and build character.',
     images: [{ url: '/kmhs%20beta%20club%20logo.png', width: 800, height: 600, alt: 'KMHS Beta Logo' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'KMHS Beta Club | Kennesaw Mountain High School',
+    description: 'Official portal for the National Beta Club at Kennesaw Mountain High School.',
+    images: ['/kmhs%20beta%20club%20logo.png'],
+  }
 };
 
 export default function RootLayout({
