@@ -2,6 +2,12 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, ListPlus, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Resources',
+  description: 'Official chapter bylaws, membership information, and helpful links for Kennesaw Mountain High School Beta members.',
+};
 
 const resources = [
   {

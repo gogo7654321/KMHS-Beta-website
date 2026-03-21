@@ -4,6 +4,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { serviceStats, topVolunteers } from "@/lib/data";
 import { ServiceHoursChart } from "./service-hours-chart";
 import { Crown } from "lucide-react";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Service Impact',
+  description: 'Tracking the collective community impact of Kennesaw Mountain High School Beta. View our hours and top student volunteers.',
+};
 
 export default function ServiceHoursPage() {
   const progressPercentage = (serviceStats.current / serviceStats.goal) * 100;
