@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -56,7 +57,7 @@ export default function AdminBlogManagement() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
-          <Card shadow-lg>
+          <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-primary" />
