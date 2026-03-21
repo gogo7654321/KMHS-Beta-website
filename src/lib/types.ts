@@ -85,6 +85,18 @@ export type Admin = {
   personalUrl?: string;
 };
 
+export type BlogPost = {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  imageCaption?: string;
+  tags: string[];
+  authorName: string;
+  createdAt: string;
+  status: 'draft' | 'published';
+};
+
 export type HomePageContent = {
   announcementText: string;
 };

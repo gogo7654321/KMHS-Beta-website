@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminList } from '../admin/super/admin-list';
 import { MemberList } from '../admin/super/member-list';
-import { User as UserIcon, Users, Shield, Image as ImageIcon, Settings, LayoutDashboard } from "lucide-react";
+import { User as UserIcon, Users, Shield, Image as ImageIcon, Settings, LayoutDashboard, BookOpen } from "lucide-react";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -238,6 +238,12 @@ export default function AdminPortalPage() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                     <Card className="p-6 flex flex-col items-center text-center">
+                        <BookOpen className="h-8 w-8 text-primary mb-2" />
+                        <h3 className="text-xl font-bold">Chapter Blog</h3>
+                        <p className="text-sm text-muted-foreground mb-4">Post news and achievements for AdSense.</p>
+                        <Button className="w-full" asChild><Link href="/admin-portal/blog">Manage Stories</Link></Button>
+                    </Card>
+                    <Card className="p-6 flex flex-col items-center text-center">
                         <h3 className="text-xl font-bold">Events</h3>
                         <p className="text-sm text-muted-foreground mb-4">Post announcements and projects.</p>
                         <Button className="w-full" asChild><Link href="/events">Manage Events</Link></Button>
@@ -246,11 +252,6 @@ export default function AdminPortalPage() {
                         <h3 className="text-xl font-bold">Service Logs</h3>
                         <p className="text-sm text-muted-foreground mb-4">Approve or reject student hours.</p>
                         <Button className="w-full" asChild><Link href="/service-hours">Verify Hours</Link></Button>
-                    </Card>
-                    <Card className="p-6 flex flex-col items-center text-center">
-                        <h3 className="text-xl font-bold">Chapter Gallery</h3>
-                        <p className="text-sm text-muted-foreground mb-4">Curate activity photos.</p>
-                        <Button className="w-full" asChild><Link href="/gallery">Update Gallery</Link></Button>
                     </Card>
                 </div>
                 <div className="pt-8">

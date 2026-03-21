@@ -172,6 +172,24 @@
           "type": "number"
         }
       }
+    },
+    "BlogPost": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BlogPost",
+      "type": "object",
+      "description": "Represents a chapter blog article.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "imageCaption": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["draft", "published"] }
+      },
+      "required": ["id", "title", "content", "authorName", "createdAt", "status"]
     }
   },
   "auth": {
@@ -209,6 +227,16 @@
             "$ref": "#/backend/entities/ServiceHour"
           },
           "description": "Service hour log entries."
+        }
+      },
+      {
+        "path": "/blogs/{blogId}",
+        "definition": {
+          "entityName": "BlogPost",
+          "schema": {
+            "$ref": "#/backend/entities/BlogPost"
+          },
+          "description": "Chapter blog articles."
         }
       }
     ]

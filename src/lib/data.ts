@@ -1,3 +1,4 @@
+
 import { Award, Heart, Network, Users } from 'lucide-react';
 import type { NavLink, Benefit, Event, ServiceVolunteer, ServiceHourEntry, Photo } from './types';
 import { PlaceHolderImages } from './placeholder-images';
@@ -6,6 +7,7 @@ export const placeholderImages = PlaceHolderImages;
 
 export const navLinks: NavLink[] = [
   { href: '/', label: 'Home' },
+  { href: '/blog', label: 'Blog' },
   { href: '/events', label: 'Events' },
   { href: '/service-hours', label: 'Service' },
   { href: '/gallery', label: 'Gallery' },
