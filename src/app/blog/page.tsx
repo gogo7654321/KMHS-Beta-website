@@ -3,9 +3,9 @@
 
 import React from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import type { BlogPost } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
@@ -15,12 +15,18 @@ import { ArrowRight, Calendar, User } from 'lucide-react';
 
 export default function BlogPage() {
   const firestore = useFirestore();
+  
+  // We remove the 'where' clause here to avoid requiring a composite index.
+  // The filtering for 'published' status is now handled in memory below.
   const blogsQuery = useMemoFirebase(() => 
-    query(collection(firestore, 'blogs'), where('status', '==', 'published'), orderBy('createdAt', 'desc')),
+    query(collection(firestore, 'blogs'), orderBy('createdAt', 'desc')),
     [firestore]
   );
   
-  const { data: blogs, isLoading } = useCollection<BlogPost>(blogsQuery);
+  const { data: allBlogs, isLoading } = useCollection<BlogPost>(blogsQuery);
+
+  // In-memory filter for published stories
+  const blogs = allBlogs?.filter(post => post.status === 'published');
 
   return (
     <div className="container mx-auto px-4 py-12 md:px-6">
@@ -83,9 +89,9 @@ export default function BlogPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="line-clamp-3 text-sm text-muted-foreground mb-4">
-                    {post.content}
-                  </p>
+                  <div className="line-clamp-3 text-sm text-muted-foreground mb-4 opacity-80">
+                    {post.content.replace(/[#*`]/g, '').substring(0, 150)}...
+                  </div>
                   <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-primary">
                     <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />

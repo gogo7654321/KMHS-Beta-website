@@ -51,7 +51,7 @@ function LeadershipSkeleton() {
 
 function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean }) {
   const defaultAvatar = placeholderImages.find(p => p.id === 'default-avatar');
-  const isSuperAdmin = admin.email === 'npatel012010@gmail.com';
+  const isSuperAdmin = admin.email === 'npatel012010@gmail.com' || admin.id === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
 
   const fullName = `${admin.firstName} ${admin.lastName}`;
   const position = admin.position;
@@ -167,7 +167,7 @@ export default function LeadershipPage() {
     }
   }, [admins]);
 
-  const isSuperAdminViewer = user?.email === 'npatel012010@gmail.com';
+  const isSuperAdminViewer = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
