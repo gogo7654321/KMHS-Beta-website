@@ -123,7 +123,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
 
   const handleCroppedImage = async (blob: Blob, originalName: string) => {
     setIsLoading(true);
-    const { id: tid } = toast({ title: 'Processing cropped image...' });
+    const { id: tid } = toast({ title: 'Processing image...' });
     
     try {
         const filePath = `gallery/${Date.now()}_${originalName}`;
@@ -132,12 +132,12 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
         await uploadBytes(storageRef, blob);
         const imageUrl = await getDownloadURL(storageRef);
 
-        form.setValue('image', imageUrl); // Temporary hidden value if needed
+        form.setValue('image', imageUrl);
         setImagePreview(imageUrl);
         
         toast({ id: tid, title: 'Image ready!' });
     } catch (error: any) {
-        toast({ id: tid, variant: 'destructive', title: 'Processing Failed', description: error.message });
+        toast({ id: tid, variant: 'destructive', title: 'Upload Failed', description: error.message });
     } finally {
         setIsLoading(false);
     }
@@ -147,13 +147,13 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     setIsLoading(true);
 
     if (mode === 'add' && !imagePreview) {
-        toast({ variant: 'destructive', title: 'Image Required', description: 'Please select and crop an image to upload.' });
+        toast({ variant: 'destructive', title: 'Image Required', description: 'Please select and crop an image.' });
         setIsLoading(false);
         return;
     }
     
     if (mode === 'edit' && !photo) {
-        toast({ variant: 'destructive', title: 'Save Failed', description: 'Cannot update: original photo data is missing.' });
+        toast({ variant: 'destructive', title: 'Error', description: 'Photo data missing.' });
         setIsLoading(false);
         return;
     }
@@ -187,20 +187,19 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
                 const oldImageRef = ref(storage, photo.imageUrl);
                 await deleteObject(oldImageRef);
             } catch (deleteError: any) {
-                console.warn("Could not delete old gallery image:", deleteError.message);
+                console.warn("Clean-up failed:", deleteError.message);
             }
           }
         }
 
         toast({
             title: `Photo ${mode === 'add' ? 'Added' : 'Updated'}`,
-            description: `"${data.title}" has been saved.`,
+            description: `"${data.title}" saved.`,
         });
         setIsOpen(false);
 
     } catch (error: any) {
-        console.error("Gallery operation failed:", error);
-        toast({ variant: 'destructive', title: 'Save Failed', description: 'An unexpected error occurred.' });
+        toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
     } finally {
         setIsLoading(false);
     }
@@ -210,39 +209,39 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>{mode === 'add' ? 'Add Photo to Gallery' : 'Edit Photo'}</DialogTitle>
-          <DialogDescription>{mode === 'add' ? 'Upload a new photo and provide its details.' : `Editing details for "${photo?.title}".`}</DialogDescription>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle>{mode === 'add' ? 'Add Photo' : 'Edit Photo'}</DialogTitle>
+          <DialogDescription>{mode === 'add' ? 'Upload a new photo to the chapter gallery.' : `Editing details for "${photo?.title}".`}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <div className="flex flex-col items-center gap-4">
-                <div className="relative w-full h-48 rounded-md bg-muted overflow-hidden border">
+                <div className="relative w-full h-48 rounded-md bg-muted overflow-hidden border shrink-0">
                     {imagePreview ? (
                         <Image src={imagePreview} alt="Image preview" fill className="object-cover" />
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                             <ImageIcon className="h-12 w-12" />
-                            <p>Image Preview</p>
+                            <p>No image selected</p>
                         </div>
                     )}
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+                <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
                     <ImageIcon className="mr-2 h-4 w-4"/> {mode === 'add' ? 'Select & Crop Image' : 'Replace & Crop Image'}
                 </Button>
-                <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/png, image/jpeg, image/gif, image/webp" className="hidden" />
+                <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
             </div>
 
-            <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., State Convention Winners" {...field} /></FormControl><FormMessage /></FormItem> )}/>
-            <FormField control={form.control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A brief description of the photo." className="resize-none" {...field} /></FormControl><FormMessage /></FormItem> )}/>
+            <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., State Convention" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem> )}/>
+            <FormField control={form.control} name="description" render={({ field }) => ( <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Brief summary..." className="resize-none" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem> )}/>
             
             <FormField control={form.control} name="category" render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Select a photo category" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {photoCategories.map(cat => (
@@ -257,14 +256,14 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
             <FormField control={form.control} name="names" render={({ field }) => ( 
                 <FormItem>
                     <FormLabel>People in Photo</FormLabel>
-                    <FormControl><Textarea placeholder="e.g., John Doe, Jane Smith" {...field} /></FormControl>
-                    <FormDescription>Enter names separated by commas.</FormDescription>
+                    <FormControl><Textarea placeholder="e.g., John Doe, Jane Smith" {...field} value={field.value || ''} /></FormControl>
+                    <FormDescription className="text-xs">Comma separated.</FormDescription>
                     <FormMessage />
                 </FormItem> 
             )}/>
 
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
+            <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+              <Button type="submit" disabled={isLoading} className="w-full font-bold h-12 md:h-10">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isLoading ? 'Saving...' : mode === 'add' ? 'Add Photo' : 'Save Changes'}
               </Button>
@@ -277,7 +276,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     {imageToCrop && (
       <ImageCropper
         image={imageToCrop.url}
-        aspect={1} // Force square for gallery
+        aspect={1}
         onCropComplete={(blob) => {
           handleCroppedImage(blob, imageToCrop.name);
           setImageToCrop(null);

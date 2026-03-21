@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function MemberPortalPage() {
   const { user, isUserLoading } = useUser();
@@ -38,16 +39,9 @@ export default function MemberPortalPage() {
   // Define isAdmin for local checks
   const isAdmin = !!adminData || isSuperAdmin;
 
-  // Protected query: Only run if we have a user AND a confirmed member profile to avoid permission ghosts
   const hoursQuery = useMemoFirebase(() => {
-    // SECURITY CRITICAL: Wait for all loading states to settle before firing
     if (!user || isMemberLoading || isAdminLoading || !memberData) return null;
-    
-    return query(
-      collection(firestore, 'service-hours'),
-      where('memberId', '==', user.uid),
-      orderBy('date', 'desc')
-    );
+    return query(collection(firestore, 'service-hours'), where('memberId', '==', user.uid), orderBy('date', 'desc'));
   }, [firestore, user?.uid, memberData?.id, isMemberLoading, isAdminLoading]);
 
   const { data: serviceHours, isLoading: isHoursLoading } = useCollection<ServiceHour>(hoursQuery);
@@ -58,16 +52,13 @@ export default function MemberPortalPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // Generates a random 5-digit numeric member ID
   const generateMemberId = () => Math.floor(10000 + Math.random() * 90000).toString();
 
   const handleCreateMemberFromAdmin = async () => {
     if (!user) return;
     setIsCreatingProfile(true);
-
     try {
       const memberDocRef = doc(firestore, 'members', user.uid);
-      
       const newMemberData: Member = {
         id: user.uid,
         memberId: generateMemberId(),
@@ -77,20 +68,10 @@ export default function MemberPortalPage() {
         grade: adminData?.grade || 12,
         totalHours: 0,
       };
-
       setDocumentNonBlocking(memberDocRef, newMemberData, { merge: false });
-      
-      toast({
-        title: "Member Profile Initialized",
-        description: `Welcome, ${newMemberData.firstName}! Your 5-digit ID is #${newMemberData.memberId}.`,
-      });
-      
+      toast({ title: "Profile Initialized", description: `Welcome, ${newMemberData.firstName}!` });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Initialization Failed",
-        description: error.message || "Failed to create member profile.",
-      });
+      toast({ variant: "destructive", title: "Initialization Failed", description: error.message });
     } finally {
       setIsCreatingProfile(false);
     }
@@ -98,16 +79,14 @@ export default function MemberPortalPage() {
 
   if (isUserLoading || isMemberLoading || isAdminLoading || (hoursQuery && isHoursLoading)) {
     return (
-      <div className="container mx-auto py-12 px-4">
-        <div className="space-y-8">
-          <Skeleton className="h-12 w-64" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-          <Skeleton className="h-64 w-full" />
+      <div className="container mx-auto py-12 px-4 space-y-8">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
         </div>
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
@@ -117,26 +96,17 @@ export default function MemberPortalPage() {
   if (!memberData && isAdmin) {
     return (
       <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center text-center">
-        <ShieldAlert className="h-20 w-20 text-primary mb-6 animate-bounce" />
-        <h1 className="text-3xl font-bold font-headline">Member Portal Setup</h1>
-        <p className="mt-4 text-muted-foreground max-w-md">
-          Hello {adminData?.firstName || 'Officer'}! You are logged into the Member Portal, but you don't have a member record yet. 
-          Initialize your dashboard to start logging your own service hours.
+        <ShieldAlert className="h-20 w-20 text-primary mb-6" />
+        <h1 className="text-2xl md:text-3xl font-bold font-headline">Setup Required</h1>
+        <p className="mt-4 text-muted-foreground max-w-md text-sm md:text-base">
+          Hello {adminData?.firstName || 'Officer'}! Initialize your student dashboard to start logging your own service hours.
         </p>
-        <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} size="lg" className="font-bold text-lg px-8">
-                {isCreatingProfile ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Initializing...
-                  </>
-                ) : (
-                  'Create My Member Profile'
-                )}
+        <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+            <Button onClick={handleCreateMemberFromAdmin} disabled={isCreatingProfile} className="font-bold h-12 flex-1">
+                {isCreatingProfile ? <Loader2 className="mr-2 animate-spin" /> : null}
+                Create Member Profile
             </Button>
-            <Button variant="outline" size="lg" asChild>
-                <Link href="/admin-portal">Go to Admin Portal</Link>
-            </Button>
+            <Button variant="outline" asChild className="h-12 flex-1"><Link href="/admin-portal">Admin Portal</Link></Button>
         </div>
       </div>
     );
@@ -145,73 +115,62 @@ export default function MemberPortalPage() {
   if (!memberData) {
       return (
         <div className="container mx-auto py-24 px-4 text-center">
-            <h1 className="text-2xl font-bold">Registration Required</h1>
-            <p className="mt-2 text-muted-foreground">We couldn't find a member profile for this account.</p>
-            <Button asChild className="mt-6">
-                <Link href="/signup/member">Join the Chapter</Link>
-            </Button>
+            <h1 className="text-2xl font-bold">Profile Not Found</h1>
+            <Button asChild className="mt-6 font-bold"><Link href="/signup/member">Join the Chapter</Link></Button>
         </div>
       );
   }
 
-  const totalApprovedHours = serviceHours
-    ? serviceHours.filter(h => h.status === 'approved').reduce((acc, h) => acc + h.hours, 0)
-    : 0;
-
+  const totalApprovedHours = serviceHours ? serviceHours.filter(h => h.status === 'approved').reduce((acc, h) => acc + h.hours, 0) : 0;
   const annualGoal = 30;
   const progressPercent = Math.min((totalApprovedHours / annualGoal) * 100, 100);
 
   return (
-    <div className="container mx-auto py-12 px-4 space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto py-8 md:py-12 px-4 space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="font-headline text-4xl font-bold">Member Portal</h1>
-          <p className="text-muted-foreground">Welcome back, {memberData.firstName} • ID: #{memberData.memberId}</p>
+          <h1 className="font-headline text-3xl md:text-4xl font-bold">Member Portal</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Welcome back, {memberData.firstName} • ID: #{memberData.memberId}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             {isAdmin && (
-                <Button variant="outline" asChild>
-                    <Link href="/admin-portal" className="gap-2">
-                      <LayoutDashboard className="h-4 w-4" /> Admin Portal
-                    </Link>
+                <Button variant="outline" asChild className="font-bold flex-1 md:flex-none">
+                    <Link href="/admin-portal" className="gap-2"><LayoutDashboard className="h-4 w-4" /> Admin Portal</Link>
                 </Button>
             )}
-            <Button disabled className="font-bold bg-muted text-muted-foreground border-2 border-dashed">
+            <Button disabled className="font-bold bg-muted text-muted-foreground border-2 border-dashed flex-1 md:flex-none">
                 <PlusCircle className="mr-2 h-5 w-5" />
                 Log Hours (Coming Soon)
             </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="border-2 border-primary/20 bg-secondary/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Approved Hours</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Approved Hours</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{totalApprovedHours} <span className="text-sm font-normal text-muted-foreground">/ {annualGoal}</span></div>
-            <p className="text-xs text-muted-foreground mt-1">Goal Completion</p>
-            <Progress value={progressPercent} className="mt-3 h-2" />
+            <Progress value={progressPercent} className="mt-4 h-2" />
           </CardContent>
         </Card>
 
         <Card className="bg-secondary/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Pending</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pending Review</CardTitle>
             <AlertCircle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {serviceHours?.filter(h => h.status === 'pending').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
+            <div className="text-3xl font-bold">{serviceHours?.filter(h => h.status === 'pending').length || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1 italic">Waiting for officer approval</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider">Member Status</CardTitle>
+        <Card className="bg-secondary/10 hidden lg:block">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Member Status</CardTitle>
             <Award className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -223,47 +182,46 @@ export default function MemberPortalPage() {
 
       <Card className="border-border/60 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-headline">
+          <CardTitle className="flex items-center gap-2 font-headline text-xl">
             <History className="h-5 w-5 text-primary" />
             Service History
           </CardTitle>
-          <CardDescription>Your logged volunteer contributions and status.</CardDescription>
+          <CardDescription>Your logged contributions and verification status.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-6">
           {serviceHours && serviceHours.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Hours</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {serviceHours.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-muted-foreground">{log.date ? format(new Date(log.date), 'MMM d, yyyy') : 'N/A'}</TableCell>
-                    <TableCell className="font-semibold">{log.eventName}</TableCell>
-                    <TableCell>{log.hours}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={
-                        log.status === 'approved' ? 'default' : 
-                        log.status === 'pending' ? 'outline' : 'destructive'
-                      } className="gap-1 capitalize">
-                        {log.status === 'approved' && <CheckCircle2 className="h-3 w-3" />}
-                        {log.status === 'pending' && <Clock className="h-3 w-3 animate-pulse" />}
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ScrollArea className="w-full">
+              <div className="min-w-[600px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[120px]">Date</TableHead>
+                      <TableHead>Event Activity</TableHead>
+                      <TableHead className="w-[80px]">Hours</TableHead>
+                      <TableHead className="text-right w-[120px]">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {serviceHours.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="text-muted-foreground text-xs">{log.date ? format(new Date(log.date), 'MMM d, yyyy') : 'N/A'}</TableCell>
+                        <TableCell className="font-semibold">{log.eventName}</TableCell>
+                        <TableCell>{log.hours}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={log.status === 'approved' ? 'default' : log.status === 'pending' ? 'outline' : 'destructive'} className="text-[10px] capitalize">
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           ) : (
-            <div className="text-center py-24 border-2 border-dashed rounded-lg bg-secondary/5">
-              <p className="text-muted-foreground text-lg font-medium">No service history yet.</p>
-              <Button disabled variant="outline" className="mt-4">Logging Coming Soon</Button>
+            <div className="text-center py-20 bg-secondary/5 m-6 rounded-lg border-2 border-dashed">
+              <p className="text-muted-foreground text-sm font-medium">No service logs found yet.</p>
             </div>
           )}
         </CardContent>

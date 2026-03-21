@@ -32,7 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Admin } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import { ImageIcon, Loader2 } from 'lucide-react';
+import { ImageIcon, Loader2, Save } from 'lucide-react';
 import { placeholderImages } from '@/lib/data';
 import { ImageCropper } from '@/components/ui/image-cropper';
 
@@ -202,19 +202,20 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
     <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[650px]">
-        <DialogHeader>
-          <DialogTitle>{mode === 'add' ? 'Add New Administrator' : 'Edit Administrator'}</DialogTitle>
-          <DialogDescription>{mode === 'add' ? 'Create a new administrator account and profile.' : `Editing profile for ${admin?.firstName} ${admin?.lastName}.`}</DialogDescription>
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle>{mode === 'add' ? 'Add Administrator' : 'Edit Administrator'}</DialogTitle>
+          <DialogDescription>{mode === 'add' ? 'Create a new profile.' : `Editing ${admin?.firstName} ${admin?.lastName}.`}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-2">
-              <div className="sm:col-span-2 flex flex-col items-center gap-4">
-                  <Image src={watchedImageUrl || defaultAvatar?.imageUrl || ''} alt="Avatar preview" width={100} height={100} priority className="rounded-full h-24 w-24 object-cover border-4 border-secondary" />
-                  <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading || isUploading}><ImageIcon className="mr-2 h-4 w-4"/>{isUploading ? 'Uploading...' : 'Upload & Crop Photo'}</Button>
-              </div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
+            <div className="flex flex-col items-center gap-4 mb-6">
+                <Image src={watchedImageUrl || defaultAvatar?.imageUrl || ''} alt="Avatar preview" width={100} height={100} priority className="rounded-full h-24 w-24 object-cover border-4 border-secondary shrink-0" />
+                <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
+                <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => fileInputRef.current?.click()} disabled={isLoading || isUploading}><ImageIcon className="mr-2 h-4 w-4"/>{isUploading ? 'Uploading...' : 'Change Photo'}</Button>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input placeholder="John" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input placeholder="Doe" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="position" render={({ field }) => ( <FormItem><FormLabel>Position</FormLabel><FormControl><Input placeholder="e.g., President" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
@@ -223,10 +224,10 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
                 <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="admin@example.com" {...field} disabled={mode === 'edit'} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               </div>
               <div className="sm:col-span-2">
-                <FormField control={form.control} name="bio" render={({ field }) => ( <FormItem><FormLabel>Bio</FormLabel><FormControl><Textarea placeholder="A short bio for the leadership page..." {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="bio" render={({ field }) => ( <FormItem><FormLabel>Bio</FormLabel><FormControl><Textarea placeholder="Short bio..." className="min-h-[80px]" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               </div>
               <div className="sm:col-span-2">
-                <FormField control={form.control} name="personalUrl" render={({ field }) => ( <FormItem><FormLabel>Personal URL</FormLabel><FormControl><Input placeholder="https://example.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="personalUrl" render={({ field }) => ( <FormItem><FormLabel>Personal URL</FormLabel><FormControl><Input placeholder="https://portfolio.com" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               </div>
               {mode === 'add' && (
                 <>
@@ -235,9 +236,10 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
                 </>
               )}
             </div>
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading || isUploading} className="w-full sm:w-auto">
-                {isLoading ? (mode === 'add' ? 'Creating...' : 'Saving...') : (mode === 'add' ? 'Create Admin' : 'Save Changes')}
+            <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+              <Button type="submit" disabled={isLoading || isUploading} className="w-full font-bold h-12 md:h-10">
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {mode === 'add' ? 'Create Admin' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </form>

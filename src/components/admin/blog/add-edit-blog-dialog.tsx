@@ -166,15 +166,15 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
     <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === 'add' ? 'Write New Chapter Story' : 'Edit Chapter Story'}</DialogTitle>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="text-xl md:text-2xl">{mode === 'add' ? 'Write New Chapter Story' : 'Edit Chapter Story'}</DialogTitle>
           <DialogDescription>
-            Compose an article for the Kennesaw Mountain Beta blog. Use detailed content for better AdSense results.
+            Compose an article for the Kennesaw Mountain Beta blog. Use Markdown for rich formatting.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-6">
             <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem><FormLabel>Article Title</FormLabel><FormControl><Input placeholder="e.g., Highlights from the National Convention" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
@@ -200,18 +200,18 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
             <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
                 <FormLabel>Cover Media</FormLabel>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="relative aspect-video w-full sm:w-48 overflow-hidden rounded-md border bg-secondary">
+                    <div className="relative aspect-video w-full sm:w-48 overflow-hidden rounded-md border bg-secondary shrink-0">
                         {form.watch('imageUrl') ? (
                             <Image src={form.watch('imageUrl') || ''} alt="Preview" fill className="object-cover" />
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full text-muted-foreground"><ImageIcon className="h-8 w-8" /></div>
                         )}
                     </div>
-                    <div className="flex-1 space-y-3">
+                    <div className="w-full space-y-3">
                          <input type="file" ref={fileInputRef} onChange={onFileSelect} className="hidden" accept="image/*" />
-                         <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                         <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
                             {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-                            Upload & Crop Cover Photo
+                            Upload & Crop Photo
                          </Button>
                          <FormField control={form.control} name="imageCaption" render={({ field }) => (
                             <FormItem><FormControl><Input placeholder="Photo caption..." {...field} /></FormControl></FormItem>
@@ -222,22 +222,22 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
 
             <FormField control={form.control} name="content" render={({ field }) => (
                 <FormItem>
-                    <FormLabel className="flex items-center gap-2">
-                      Article Content
+                    <FormLabel className="flex items-center justify-between">
+                      <span>Article Content</span>
                       <Badge variant="outline" className="font-normal gap-1 text-[10px] py-0">
                         <Info className="h-3 w-3" /> Supports Markdown
                       </Badge>
                     </FormLabel>
-                    <FormControl><Textarea placeholder="Share the full details of this event or achievement..." className="min-h-[300px] leading-relaxed font-mono text-sm" {...field} /></FormControl>
+                    <FormControl><Textarea placeholder="Share the full details of this event or achievement..." className="min-h-[250px] leading-relaxed font-mono text-sm" {...field} /></FormControl>
                     <FormDescription>
-                      You can paste text from Gemini. Use **bold** for emphasis and - for bullets.
+                      Use **bold** for emphasis and - for bullets.
                     </FormDescription>
                     <FormMessage />
                 </FormItem>
             )}/>
 
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading || isUploading} className="w-full sm:w-auto font-bold">
+            <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t gap-2 sm:gap-0">
+              <Button type="submit" disabled={isLoading || isUploading} className="w-full sm:w-auto font-bold h-12 md:h-10">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {mode === 'add' ? 'Create Post' : 'Update Post'}
               </Button>

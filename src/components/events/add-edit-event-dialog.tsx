@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -143,15 +142,15 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === 'add' ? 'Add New Event' : 'Edit Event'}</DialogTitle>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle className="text-xl">{mode === 'add' ? 'Add New Event' : 'Edit Event'}</DialogTitle>
           <DialogDescription>
             {mode === 'add' ? 'Fill out the details for the new event.' : `Editing '${event?.title}'.`}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Annual Food Drive" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
@@ -161,10 +160,10 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
               name="types"
               render={() => (
                 <FormItem>
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <FormLabel className="text-base">Event Categories</FormLabel>
-                    <FormDescription>
-                      Select one or more categories that this event falls under.
+                    <FormDescription className="text-xs">
+                      Select one or more categories.
                     </FormDescription>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -193,7 +192,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                                   }}
                                 />
                               </FormControl>
-                              <FormLabel className="font-normal cursor-pointer">
+                              <FormLabel className="font-normal cursor-pointer text-sm">
                                 {type}
                               </FormLabel>
                             </FormItem>
@@ -213,7 +212,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                     <Popover>
                         <PopoverTrigger asChild>
                         <FormControl>
-                            <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                            <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                             {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -239,10 +238,10 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                 <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., KMHS Front Entrance" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A brief description of the event." className="resize-none" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A brief description of the event." className="resize-none min-h-[100px]" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
+            <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+              <Button type="submit" disabled={isLoading} className="w-full font-bold h-12 sm:h-10">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isLoading ? 'Saving...' : mode === 'add' ? 'Create Event' : 'Save Changes'}
               </Button>
