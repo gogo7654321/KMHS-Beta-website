@@ -7,8 +7,8 @@ import { Crown } from "lucide-react";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Service',
-  description: 'Tracking the collective community impact of Kennesaw Mountain High School Beta. View our volunteer hours and chapter progress.',
+  title: 'Chapter Service Impact',
+  description: 'Tracking the collective community impact and service leadership of Kennesaw Mountain High School Beta members.',
 };
 
 export default function ServiceHoursPage() {
@@ -78,7 +78,7 @@ export default function ServiceHoursPage() {
           <CardContent>
             <ServiceHoursChart />
           </CardContent>
-        </div>
+        </Card>
       </div>
     </div>
   );

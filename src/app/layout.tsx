@@ -9,10 +9,10 @@ import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: {
-    default: 'KMHS Beta Club | Service & Leadership',
-    template: '%s | KMHS Beta Club'
+    default: 'KMHS Beta Club',
+    template: '%s'
   },
-  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. Home of the KMHS Magnet program. Fostering service, character, and academic achievement.',
+  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. We lead through community service and academic excellence, developing the next generation of student leaders.',
   keywords: [
     'Kennesaw Mountain High School', 
     'KMHS', 
@@ -38,14 +38,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://kmhsbeta.com',
-    siteName: 'Kennesaw Mountain High School Beta Club',
-    title: 'Kennesaw Mountain High School Beta Club | Lead by Serving Others',
-    description: 'Serving the Kennesaw Mountain High School community and the Magnet program. Track service hours, join events, and build character.',
+    siteName: 'KMHS Beta Club',
+    title: 'KMHS Beta Club',
+    description: 'Leading by serving others at Kennesaw Mountain High School. Join us for community impact and leadership development.',
     images: [{ url: '/kmhs%20beta%20club%20logo.png', width: 800, height: 600, alt: 'KMHS Beta Logo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KMHS Beta Club | Kennesaw Mountain High School',
+    title: 'KMHS Beta Club',
     description: 'Official portal for the National Beta Club at Kennesaw Mountain High School.',
     images: ['/kmhs%20beta%20club%20logo.png'],
   }

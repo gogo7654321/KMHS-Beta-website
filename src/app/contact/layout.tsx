@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact',
-  description: 'Contact the Kennesaw Mountain High School Beta Club leadership regarding membership, sponsorships, or service hour inquiries.',
+  title: 'Contact Us',
+  description: 'Get in touch with Kennesaw Mountain High School Beta Club leadership regarding community partnerships, service projects, or membership.',
 };
 
 export default function ContactLayout({ children }: { children: React.ReactNode }) {
