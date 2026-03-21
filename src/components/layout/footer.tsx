@@ -16,7 +16,10 @@ export function Footer() {
             <div className="text-center sm:text-left">
               <p className="font-headline text-lg font-bold text-primary">Kennesaw Mountain High School Beta</p>
               <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} All rights reserved.</p>
-              <p className="text-xs text-muted-foreground mt-1">Website by Neil Mendpara</p>
+              <div className="flex gap-3 mt-1 justify-center sm:justify-start">
+                <Link href="/privacy" className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60 hover:text-primary transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60 hover:text-primary transition-colors">Terms of Service</Link>
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-center gap-4 sm:items-end">
@@ -27,9 +30,12 @@ export function Footer() {
                 </Link>
               </Button>
             </div>
-            <a href="mailto:kmhsbeta@studizilla.com" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-              kmhsbeta@studizilla.com
-            </a>
+            <div className="text-center sm:text-right">
+              <a href="mailto:kmhsbeta@studizilla.com" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+                kmhsbeta@studizilla.com
+              </a>
+              <p className="text-[10px] text-muted-foreground/40 mt-1 uppercase tracking-tighter">Website by Neil Mendpara</p>
+            </div>
           </div>
         </div>
       </div>
