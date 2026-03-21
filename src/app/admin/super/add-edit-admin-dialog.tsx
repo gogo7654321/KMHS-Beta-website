@@ -32,8 +32,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { Admin } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import Image from 'next/image';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Loader2 } from 'lucide-react';
 import { placeholderImages } from '@/lib/data';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 const adminFormSchemaBase = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -76,6 +77,8 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
+  const [pendingImageBlob, setPendingImageBlob] = useState<Blob | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const auth = useAuth();
   const firestore = useFirestore();
@@ -94,59 +97,51 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
     if (isOpen) {
       const values = mode === 'edit' && admin ? { ...admin, grade: admin.grade || 9, bio: admin.bio ?? '', imageUrl: admin.imageUrl ?? '', personalUrl: admin.personalUrl ?? '' } : defaultAddValues;
       form.reset(values);
+      setPendingImageBlob(null);
     }
   }, [isOpen, form, mode, admin]);
 
-  const handleImageUpload = async (file: File, userId: string): Promise<string> => {
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, name: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = async (blob: Blob, originalName: string, userId: string): Promise<string> => {
     if (!storage) {
         throw new Error("Firebase Storage not available.");
     }
-    setIsUploading(true);
     const toastId = toast({ title: 'Uploading image...' }).id;
 
     try {
-        const filePath = `admin-avatars/${userId}/${Date.now()}_${file.name}`;
+        const filePath = `admin-avatars/${userId}/${Date.now()}_${originalName}`;
         const storageRef = ref(storage, filePath);
         
-        console.log(`Starting upload for: ${filePath}`);
-        await uploadBytes(storageRef, file);
+        await uploadBytes(storageRef, blob);
         const downloadURL = await getDownloadURL(storageRef);
         
-        form.setValue('imageUrl', downloadURL);
-        toast({ id: toastId, title: 'Upload successful!', description: 'Image has been uploaded.' });
+        toast({ id: toastId, title: 'Upload successful!' });
         return downloadURL;
     } catch (error: any) {
-        console.error("FIREBASE STORAGE UPLOAD FAILED:", error);
         toast({
             id: toastId,
             variant: 'destructive',
             title: 'Upload Failed',
-            description: `Error: ${error.code || error.message}. Please check CORS & storage rules.`,
-            duration: 9000,
+            description: error.message,
         });
-        throw error; // Re-throw to prevent form submission
-    } finally {
-        setIsUploading(false);
-    }
-  };
-
-
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && mode === 'edit' && admin?.id) {
-        handleImageUpload(file, admin.id);
-    } else if (file && mode === 'add') {
-        const previewUrl = URL.createObjectURL(file);
-        form.setValue('imageUrl', previewUrl);
+        throw error;
     }
   };
 
   const onSubmit = async (data: AddAdminFormValues | EditAdminFormValues) => {
     setIsLoading(true);
-    const file = fileInputRef.current?.files?.[0];
 
     try {
-      // ADD MODE
       if (mode === 'add') {
         const addData = data as AddAdminFormValues;
         const q = query(collection(firestore, 'admin'), where('email', '==', addData.email));
@@ -160,8 +155,8 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
 
         if (user) {
           let finalImageUrl = '';
-          if (file) {
-            finalImageUrl = await handleImageUpload(file, user.uid);
+          if (pendingImageBlob) {
+            finalImageUrl = await handleImageUpload(pendingImageBlob, 'avatar.jpg', user.uid);
           }
           const newAdminData: Omit<Admin, 'id'> & { id: string } = {
             id: user.uid, firstName: addData.firstName, lastName: addData.lastName,
@@ -171,36 +166,31 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
           setDocumentNonBlocking(doc(firestore, 'admin', user.uid), newAdminData, { merge: false });
           toast({ title: 'Admin Created', description: 'Admin account has been created.' });
         }
-      // EDIT MODE
       } else if (mode === 'edit' && admin) {
         const editData = data as EditAdminFormValues;
         const oldImageUrl = admin.imageUrl; 
-        const newImageUrl = editData.imageUrl || ''; 
+        
+        let finalImageUrl = editData.imageUrl;
+        if (pendingImageBlob) {
+            finalImageUrl = await handleImageUpload(pendingImageBlob, 'avatar.jpg', admin.id);
+        }
 
-        // The upload is handled by `onFileChange` in edit mode. We just need to save the new URL from the form data.
-        const updatedData: Partial<Admin> = { ...editData };
+        const updatedData: Partial<Admin> = { ...editData, imageUrl: finalImageUrl };
         setDocumentNonBlocking(doc(firestore, 'admin', admin.id), updatedData, { merge: true });
         toast({ title: 'Admin Updated', description: 'Profile has been updated.' });
         
-        // After successful update, delete old image if it exists and is different
-        if (oldImageUrl && oldImageUrl.includes('firebasestorage.googleapis.com') && oldImageUrl !== newImageUrl) {
+        if (oldImageUrl && pendingImageBlob && oldImageUrl.includes('firebasestorage.googleapis.com')) {
             try {
                 const oldImageRef = ref(storage, oldImageUrl);
                 await deleteObject(oldImageRef);
             } catch (deleteError: any) {
                 console.error("Failed to delete old admin picture:", deleteError);
-                toast({
-                    variant: "destructive",
-                    title: "Cleanup Failed",
-                    description: "The admin profile was updated, but the old image could not be deleted.",
-                    duration: 7000,
-                });
             }
         }
       }
       setIsOpen(false);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: mode === 'add' ? 'Creation Failed' : 'Update Failed', description: error.message || 'An unexpected error occurred.' });
+      toast({ variant: 'destructive', title: mode === 'add' ? 'Creation Failed' : 'Update Failed', description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -209,6 +199,7 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
   const defaultAvatar = placeholderImages.find(p => p.id === 'default-avatar');
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[650px]">
@@ -221,8 +212,8 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
             <div className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-2">
               <div className="sm:col-span-2 flex flex-col items-center gap-4">
                   <Image src={watchedImageUrl || defaultAvatar?.imageUrl || ''} alt="Avatar preview" width={100} height={100} priority className="rounded-full h-24 w-24 object-cover border-4 border-secondary" />
-                  <input type="file" ref={fileInputRef} onChange={onFileChange} accept="image/*" className="hidden" />
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading || isUploading}><ImageIcon className="mr-2 h-4 w-4"/>{isUploading ? 'Uploading...' : 'Upload Image'}</Button>
+                  <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/*" className="hidden" />
+                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading || isUploading}><ImageIcon className="mr-2 h-4 w-4"/>{isUploading ? 'Uploading...' : 'Upload & Crop Photo'}</Button>
               </div>
               <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input placeholder="John" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
               <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input placeholder="Doe" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
@@ -253,5 +244,20 @@ export function AddEditAdminDialog({ mode, admin, children }: AddEditAdminDialog
         </Form>
       </DialogContent>
     </Dialog>
+
+    {imageToCrop && (
+      <ImageCropper
+        image={imageToCrop.url}
+        aspect={1}
+        circular={true}
+        onCropComplete={(blob) => {
+          setPendingImageBlob(blob);
+          form.setValue('imageUrl', URL.createObjectURL(blob), { shouldDirty: true });
+          setImageToCrop(null);
+        }}
+        onCancel={() => setImageToCrop(null)}
+      />
+    )}
+    </>
   );
 }

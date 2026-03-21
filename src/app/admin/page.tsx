@@ -1,4 +1,3 @@
-
 'use client';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase, useStorage } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -25,6 +24,7 @@ import Image from 'next/image';
 import { placeholderImages } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 // --- Gallery Settings Component ---
 function GallerySettingsManager() {
@@ -99,6 +99,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 function MyProfileCard() {
   const [isFormLoading, setIsFormLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
   const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -136,7 +137,18 @@ function MyProfileCard() {
     }
   }, [adminData, form]);
 
-  const handleImageUpload = async (file: File) => {
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, name: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = async (blob: Blob, originalName: string) => {
     if (!user || !storage) {
       toast({ variant: 'destructive', title: 'Upload Error', description: 'User not authenticated or storage not available.' });
       return;
@@ -145,12 +157,11 @@ function MyProfileCard() {
     setIsUploading(true);
     const { id: uploadToastId } = toast({ title: 'Uploading...', description: 'Your image is being uploaded.' });
     
-    const filePath = `admin-avatars/${user.uid}/${Date.now()}_${file.name}`;
+    const filePath = `admin-avatars/${user.uid}/${Date.now()}_${originalName}`;
     const storageRef = ref(storage, filePath);
     
     try {
-      console.log(`Starting upload for: ${filePath}`);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
       
       form.setValue('imageUrl', downloadURL, { shouldDirty: true });
@@ -162,12 +173,11 @@ function MyProfileCard() {
       });
   
     } catch (error: any) {
-      console.error('FIREBASE STORAGE UPLOAD FAILED:', error);
       toast({
         id: uploadToastId,
         variant: 'destructive',
         title: 'Upload Failed',
-        description: `Error: ${error.code || error.message}. Please check your CORS configuration in Google Cloud Console and storage rules in Firebase.`,
+        description: error.message,
         duration: 9000,
       });
     } finally {
@@ -175,13 +185,6 @@ function MyProfileCard() {
     }
   };
 
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleImageUpload(file);
-    }
-  };
-  
   const watchedImageUrl = form.watch('imageUrl');
   const defaultAvatar = placeholderImages.find(p => p.id === 'default-avatar');
 
@@ -214,13 +217,6 @@ function MyProfileCard() {
           await deleteObject(oldImageRef);
         } catch (deleteError: any) {
           console.error("Failed to delete old profile picture:", deleteError);
-          // Don't fail the whole operation, but let the user know.
-          toast({
-            variant: "destructive",
-            title: "Cleanup Failed",
-            description: "The new profile was saved, but the old image could not be deleted.",
-            duration: 7000,
-          });
         }
       }
 
@@ -259,6 +255,7 @@ function MyProfileCard() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>My Profile</CardTitle>
@@ -272,13 +269,13 @@ function MyProfileCard() {
                 <input
                   type="file"
                   ref={fileInputRef}
-                  onChange={onFileChange}
+                  onChange={onFileSelect}
                   accept="image/png, image/jpeg, image/gif"
                   className="hidden"
                 />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
                   <ImageIcon className="mr-2 h-4 w-4" />
-                  {isUploading ? 'Uploading...' : 'Upload Image'}
+                  {isUploading ? 'Uploading...' : 'Upload & Crop Photo'}
                 </Button>
                 <FormField
                   control={form.control}
@@ -309,6 +306,20 @@ function MyProfileCard() {
         </form>
       </Form>
     </Card>
+
+    {imageToCrop && (
+      <ImageCropper
+        image={imageToCrop.url}
+        aspect={1}
+        circular={true}
+        onCropComplete={(blob) => {
+          handleImageUpload(blob, imageToCrop.name);
+          setImageToCrop(null);
+        }}
+        onCancel={() => setImageToCrop(null)}
+      />
+    )}
+    </>
   );
 }
 
@@ -346,13 +357,13 @@ export default function AdminPage() {
   }, [user, isUserLoading, router]);
 
   const isLoading = isUserLoading || isAdminLoading;
-  const isSuperAdmin = user?.email === 'npatel012010@gmail.com';
+  const isSuperAdmin = user?.email === 'npatel012010@gmail.com' || user?.uid === 'rSpqFXxlV4fxauxvGXNxYy2Njlx1';
 
   if (isLoading) {
     return <div className="container mx-auto py-12 text-center">Loading...</div>;
   }
 
-  if (!user || !adminData) {
+  if (!user || (!adminData && !isSuperAdmin)) {
     return null;
   }
 
@@ -361,7 +372,8 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
                 <div className="text-center lg:text-left">
-                    <h1 className="text-4xl font-bold">Admin Portal</h1>
+                    <h1 className="text-4xl font-bold font-headline text-primary uppercase tracking-tight">Kennesaw Mountain High School</h1>
+                    <h2 className="text-2xl font-bold mt-2">Admin Portal</h2>
                     <p className="mt-4 text-lg">Welcome, {adminData?.firstName || user.email}</p>
                 </div>
 

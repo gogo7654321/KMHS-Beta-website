@@ -25,6 +25,7 @@ import { placeholderImages } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import Link from 'next/link';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 function GallerySettingsManager() {
   const firestore = useFirestore();
@@ -94,6 +95,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 function MyProfileCard() {
   const [isFormLoading, setIsFormLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
   const { user } = useUser();
   const firestore = useFirestore();
   const storage = useStorage();
@@ -122,19 +124,33 @@ function MyProfileCard() {
     }
   }, [adminData, form]);
 
-  const handleImageUpload = async (file: File) => {
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, name: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = async (blob: Blob, fileName: string) => {
     if (!user || !storage) return;
     setIsUploading(true);
     const { id: tid } = toast({ title: 'Uploading avatar...' });
-    const filePath = `admin-avatars/${user.uid}/${Date.now()}_${file.name}`;
+    const filePath = `admin-avatars/${user.uid}/${Date.now()}_${fileName}`;
     try {
-      await uploadBytes(ref(storage, filePath), file);
-      const url = await getDownloadURL(ref(storage, filePath));
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, blob);
+      const url = await getDownloadURL(storageRef);
       form.setValue('imageUrl', url, { shouldDirty: true });
       toast({ id: tid, title: 'Upload Successful' });
     } catch (e: any) {
       toast({ id: tid, variant: 'destructive', title: 'Upload Failed', description: e.message });
-    } finally { setIsUploading(false); }
+    } finally { 
+      setIsUploading(false); 
+    }
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
@@ -154,6 +170,7 @@ function MyProfileCard() {
   if (isAdminLoading) return <Skeleton className="h-[400px] w-full" />;
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Leadership Profile</CardTitle>
@@ -166,8 +183,11 @@ function MyProfileCard() {
                 <div className="relative h-24 w-24 rounded-full overflow-hidden border">
                     <Image src={form.watch('imageUrl') || placeholderImages.find(p => p.id === 'default-avatar')?.imageUrl || ''} alt="Avatar" fill className="object-cover" />
                 </div>
-                <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} className="hidden" accept="image/*" />
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>Change Photo</Button>
+                <input type="file" ref={fileInputRef} onChange={onFileSelect} className="hidden" accept="image/*" />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                  <ImageIcon className="mr-2 h-4 w-4" />
+                  {isUploading ? 'Uploading...' : 'Change Photo'}
+                </Button>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem> )} />
@@ -182,6 +202,20 @@ function MyProfileCard() {
         </form>
       </Form>
     </Card>
+
+    {imageToCrop && (
+      <ImageCropper
+        image={imageToCrop.url}
+        aspect={1}
+        circular={true}
+        onCropComplete={(blob) => {
+          handleImageUpload(blob, imageToCrop.name);
+          setImageToCrop(null);
+        }}
+        onCancel={() => setImageToCrop(null)}
+      />
+    )}
+    </>
   );
 }
 
@@ -212,7 +246,8 @@ export default function AdminPortalPage() {
             <div className="lg:col-span-2 space-y-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-4xl font-bold font-headline">Admin Portal</h1>
+                        <h1 className="text-4xl font-bold font-headline text-primary">Kennesaw Mountain High School</h1>
+                        <h2 className="text-2xl font-bold mt-1">Admin Portal</h2>
                         <p className="mt-2 text-muted-foreground">Managing {adminData?.firstName || 'the Chapter'}'s Operations</p>
                     </div>
                     <Button variant="outline" asChild>

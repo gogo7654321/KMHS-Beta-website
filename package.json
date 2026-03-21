@@ -46,6 +46,7 @@
     "react": "latest",
     "react-day-picker": "8.10.1",
     "react-dom": "latest",
+    "react-easy-crop": "^5.2.0",
     "react-hook-form": "7.52.1",
     "react-markdown": "^9.0.1",
     "recharts": "2.12.7",

@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { BlogPost, Admin } from '@/lib/types';
 import { ImageIcon, Loader2, Save, Info } from 'lucide-react';
 import Image from 'next/image';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 const blogFormSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -45,6 +46,7 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { user } = useUser();
@@ -93,14 +95,25 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
     }
   }, [isOpen, mode, post, form]);
 
-  const handleImageUpload = async (file: File) => {
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, name: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageUpload = async (blob: Blob, originalName: string) => {
     if (!storage) return;
     setIsUploading(true);
     const { id: tid } = toast({ title: 'Uploading image...' });
-    const filePath = `blog-images/${Date.now()}_${file.name}`;
+    const filePath = `blog-images/${Date.now()}_${originalName}`;
     try {
       const storageRef = ref(storage, filePath);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, blob);
       const url = await getDownloadURL(storageRef);
       form.setValue('imageUrl', url);
       toast({ id: tid, title: 'Upload complete' });
@@ -150,6 +163,7 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -194,10 +208,10 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
                         )}
                     </div>
                     <div className="flex-1 space-y-3">
-                         <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} className="hidden" accept="image/*" />
+                         <input type="file" ref={fileInputRef} onChange={onFileSelect} className="hidden" accept="image/*" />
                          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
                             {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-                            Upload Cover Photo
+                            Upload & Crop Cover Photo
                          </Button>
                          <FormField control={form.control} name="imageCaption" render={({ field }) => (
                             <FormItem><FormControl><Input placeholder="Photo caption..." {...field} /></FormControl></FormItem>
@@ -232,5 +246,18 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
         </Form>
       </DialogContent>
     </Dialog>
+
+    {imageToCrop && (
+      <ImageCropper
+        image={imageToCrop.url}
+        aspect={16 / 9}
+        onCropComplete={(blob) => {
+          handleImageUpload(blob, imageToCrop.name);
+          setImageToCrop(null);
+        }}
+        onCancel={() => setImageToCrop(null)}
+      />
+    )}
+    </>
   );
 }

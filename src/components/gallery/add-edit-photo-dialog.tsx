@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -22,6 +21,7 @@ import type { Photo, PhotoCategory, GallerySettings } from '@/lib/types';
 import { ImageIcon, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Image from 'next/image';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 const photoCategories: PhotoCategory[] = ['Service', 'Academics', 'Social', 'Ceremonies'];
 
@@ -51,6 +51,7 @@ interface AddEditPhotoDialogProps {
 export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEditPhotoDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -109,23 +110,44 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     }
   }, [isOpen, mode, photo, form]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+      reader.onload = () => {
+        setImageToCrop({ url: reader.result as string, name: file.name });
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleCroppedImage = async (blob: Blob, originalName: string) => {
+    setIsLoading(true);
+    const { id: tid } = toast({ title: 'Processing cropped image...' });
+    
+    try {
+        const filePath = `gallery/${Date.now()}_${originalName}`;
+        const storageRef = ref(storage, filePath);
+        
+        await uploadBytes(storageRef, blob);
+        const imageUrl = await getDownloadURL(storageRef);
+
+        form.setValue('image', imageUrl); // Temporary hidden value if needed
+        setImagePreview(imageUrl);
+        
+        toast({ id: tid, title: 'Image ready!' });
+    } catch (error: any) {
+        toast({ id: tid, variant: 'destructive', title: 'Processing Failed', description: error.message });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   const onSubmit = async (data: PhotoFormValues) => {
     setIsLoading(true);
-    const imageFile: File | undefined = fileInputRef.current?.files?.[0];
 
-    if (mode === 'add' && !imageFile) {
-        toast({ variant: 'destructive', title: 'Image Required', description: 'Please select an image to upload.' });
+    if (mode === 'add' && !imagePreview) {
+        toast({ variant: 'destructive', title: 'Image Required', description: 'Please select and crop an image to upload.' });
         setIsLoading(false);
         return;
     }
@@ -137,26 +159,13 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     }
 
     try {
-        let imageUrl = photo?.imageUrl || '';
-        
-        if (imageFile) {
-            const toastId = toast({ title: 'Uploading image...' }).id;
-            const filePath = `gallery/${Date.now()}_${imageFile.name}`;
-            const storageRef = ref(storage, filePath);
-            
-            await uploadBytes(storageRef, imageFile);
-            imageUrl = await getDownloadURL(storageRef);
-
-            toast({ id: toastId, title: 'Upload successful!' });
-        }
-        
         const namesArray = data.names?.split(',').map(name => name.trim()).filter(name => name.length > 0) || [];
 
         const photoData = {
             title: data.title || '',
             description: data.description || '',
             category: data.category,
-            imageUrl: imageUrl,
+            imageUrl: imagePreview!,
             createdAt: photo?.createdAt || new Date().toISOString(),
             names: namesArray,
             order: photo?.order ?? photoCount,
@@ -172,7 +181,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
         const finalData = { ...photoData, id: docRef.id };
         setDocumentNonBlocking(docRef, finalData, { merge: mode === 'edit' });
 
-        if (mode === 'edit' && imageFile && photo?.imageUrl) {
+        if (mode === 'edit' && imagePreview !== photo?.imageUrl && photo?.imageUrl) {
           if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
             try {
                 const oldImageRef = ref(storage, photo.imageUrl);
@@ -191,13 +200,14 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
 
     } catch (error: any) {
         console.error("Gallery operation failed:", error);
-        toast({ variant: 'destructive', title: 'Save Failed', description: 'An unexpected error occurred. Check the console for details.' });
+        toast({ variant: 'destructive', title: 'Save Failed', description: 'An unexpected error occurred.' });
     } finally {
         setIsLoading(false);
     }
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
@@ -210,7 +220,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
             <div className="flex flex-col items-center gap-4">
                 <div className="relative w-full h-48 rounded-md bg-muted overflow-hidden border">
                     {imagePreview ? (
-                        <Image src={imagePreview} alt="Image preview" fill objectFit="cover" />
+                        <Image src={imagePreview} alt="Image preview" fill className="object-cover" />
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                             <ImageIcon className="h-12 w-12" />
@@ -219,9 +229,9 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
                     )}
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
-                    <ImageIcon className="mr-2 h-4 w-4"/> {mode === 'add' ? 'Select Image' : 'Replace Image'}
+                    <ImageIcon className="mr-2 h-4 w-4"/> {mode === 'add' ? 'Select & Crop Image' : 'Replace & Crop Image'}
                 </Button>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif, image/webp" className="hidden" />
+                <input type="file" ref={fileInputRef} onChange={onFileSelect} accept="image/png, image/jpeg, image/gif, image/webp" className="hidden" />
             </div>
 
             <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., State Convention Winners" {...field} /></FormControl><FormMessage /></FormItem> )}/>
@@ -263,5 +273,18 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
         </Form>
       </DialogContent>
     </Dialog>
+
+    {imageToCrop && (
+      <ImageCropper
+        image={imageToCrop.url}
+        aspect={1} // Force square for gallery
+        onCropComplete={(blob) => {
+          handleCroppedImage(blob, imageToCrop.name);
+          setImageToCrop(null);
+        }}
+        onCancel={() => setImageToCrop(null)}
+      />
+    )}
+    </>
   );
 }
