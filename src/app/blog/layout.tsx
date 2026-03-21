@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Latest Stories & Updates',
+  title: 'Blog',
   description: 'Read the latest stories, impact highlights, and news from Kennesaw Mountain High School Beta members and the KMHS community.',
 };
 

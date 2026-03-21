@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Join the Chapter',
+  title: 'Join',
   description: 'Create your KMHS Beta student member or officer account.',
   robots: {
     index: false,

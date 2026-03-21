@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Portal Login',
+  title: 'Login',
   description: 'Access the KMHS Beta chapter portal to log service hours and RSVP for events.',
   robots: {
     index: false,
