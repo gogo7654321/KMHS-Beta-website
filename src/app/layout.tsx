@@ -9,7 +9,7 @@ import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Kennesaw Mountain High School Beta Club | Service & Leadership',
+    default: 'KMHS Beta Club | Service & Leadership',
     template: '%s | KMHS Beta Club'
   },
   description: 'The official National Beta Club chapter at Kennesaw Mountain High School. Home of the KMHS Magnet program. Fostering service, character, and academic achievement.',
