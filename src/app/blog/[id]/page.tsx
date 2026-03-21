@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -12,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { ChevronLeft, Calendar, User, Tag } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function BlogPostPage() {
   const { id } = useParams();
@@ -59,7 +60,7 @@ export default function BlogPostPage() {
             </Badge>
           ))}
         </div>
-        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl leading-tight">
+        <h1 className="font-headline text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl leading-tight text-primary">
           {post.title}
         </h1>
         <div className="flex flex-wrap items-center gap-6 text-muted-foreground border-y border-border/50 py-4">
@@ -93,16 +94,16 @@ export default function BlogPostPage() {
         </figure>
       )}
 
-      <div className="prose prose-invert prose-primary max-w-none">
-        <div className="whitespace-pre-wrap text-lg leading-relaxed text-foreground/90 font-body">
+      <div className="prose prose-invert prose-primary max-w-none prose-lg">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {post.content}
-        </div>
+        </ReactMarkdown>
       </div>
 
       <div className="mt-20 border-t border-border/50 pt-12 text-center">
-        <h2 className="font-headline text-2xl font-bold mb-4">Proudly represented by</h2>
-        <p className="text-primary font-headline text-xl font-bold">Kennesaw Mountain High School Beta</p>
-        <p className="text-muted-foreground text-sm mt-2">Leading by Serving Others</p>
+        <h2 className="font-headline text-2xl font-bold mb-4 text-foreground">Proudly represented by</h2>
+        <p className="text-primary font-headline text-xl font-bold uppercase tracking-wide">Kennesaw Mountain High School Beta</p>
+        <p className="text-muted-foreground text-sm mt-2">Lead by Serving Others</p>
         <Button onClick={() => router.push('/blog')} className="mt-8">View More Stories</Button>
       </div>
     </article>

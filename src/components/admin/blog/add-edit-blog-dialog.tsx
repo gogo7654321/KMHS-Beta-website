@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -21,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import type { BlogPost, Admin } from '@/lib/types';
-import { ImageIcon, Loader2, Save } from 'lucide-react';
+import { ImageIcon, Loader2, Save, Info } from 'lucide-react';
 import Image from 'next/image';
 
 const blogFormSchema = z.object({
@@ -202,9 +201,16 @@ export function AddEditBlogDialog({ mode, post, children }: AddEditBlogDialogPro
 
             <FormField control={form.control} name="content" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Article Content</FormLabel>
-                    <FormControl><Textarea placeholder="Share the full details of this event or achievement..." className="min-h-[300px] leading-relaxed" {...field} /></FormControl>
-                    <FormDescription>Write at least 3-4 paragraphs for high-quality AdSense content.</FormDescription>
+                    <FormLabel className="flex items-center gap-2">
+                      Article Content
+                      <Badge variant="outline" className="font-normal gap-1 text-[10px] py-0">
+                        <Info className="h-3 w-3" /> Supports Markdown
+                      </Badge>
+                    </FormLabel>
+                    <FormControl><Textarea placeholder="Share the full details of this event or achievement..." className="min-h-[300px] leading-relaxed font-mono text-sm" {...field} /></FormControl>
+                    <FormDescription>
+                      You can paste text from Gemini. Use **bold** for emphasis and - for bullets.
+                    </FormDescription>
                     <FormMessage />
                 </FormItem>
             )}/>
