@@ -21,13 +21,7 @@ export const metadata: Metadata = {
     'Cobb County Schools', 
     'Service Hours', 
     'High School Volunteering', 
-    'Kennesaw Student Leadership',
-    'KMHS Magnet Program',
-    'Academy of Mathematics Medical and Engineering',
-    'KMHS Clubs',
-    'Extracurriculars Kennesaw Mountain',
-    'National Beta Club Georgia',
-    'Student Organizations Cobb County'
+    'Kennesaw Student Leadership'
   ],
   authors: [{ name: 'Kennesaw Mountain Beta' }],
   creator: 'Kennesaw Mountain High School',
