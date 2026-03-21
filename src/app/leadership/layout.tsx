@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Leadership',
+  title: 'Student Officers & Advisors',
   description: 'Meet the dedicated students and faculty advisors leading the National Beta Club chapter at Kennesaw Mountain High School.',
 };
 

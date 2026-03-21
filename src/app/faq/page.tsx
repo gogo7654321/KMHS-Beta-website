@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Resources',
-  description: 'Official chapter bylaws, membership information, and helpful links for Kennesaw Mountain High School Beta members.',
+  title: 'Chapter Bylaws & Resources',
+  description: 'Official chapter bylaws, membership information, and helpful links for Kennesaw Mountain High School Beta Club members.',
 };
 
 const resources = [
