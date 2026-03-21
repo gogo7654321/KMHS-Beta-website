@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Twitter, Instagram, Facebook } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 import { Button } from '../ui/button';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/data';
@@ -22,18 +22,8 @@ export function Footer() {
           <div className="flex flex-col items-center gap-4 sm:items-end">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" asChild>
-                <Link href="#" aria-label="Twitter">
-                  <Twitter className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
                 <Link href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="#" aria-label="Facebook">
-                  <Facebook className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
                 </Link>
               </Button>
             </div>

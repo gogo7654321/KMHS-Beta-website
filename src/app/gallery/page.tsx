@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -27,8 +26,8 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { AddEditPhotoDialog } from '@/components/gallery/add-edit-photo-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, PlusCircle, ZoomIn, Pencil, Trash2, GripVertical } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Camera, PlusCircle, ZoomIn, Pencil, Trash2, GripVertical, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
@@ -63,7 +62,7 @@ function PhotoCard({ photo, canManage, onSelect }: { photo: Photo, canManage: bo
     e.stopPropagation();
     try {
       await deleteDoc(doc(firestore, 'photos', photo.id));
-      if (photo.imageUrl) {
+      if (photo.imageUrl && photo.imageUrl.includes('firebasestorage.googleapis.com')) {
         const imageRef = ref(storage, photo.imageUrl);
         await deleteObject(imageRef);
       }
@@ -281,6 +280,9 @@ export default function GalleryPage() {
 
     <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
       <DialogContent className="max-w-5xl border-primary/50 bg-background/80 p-2 backdrop-blur-md">
+        <DialogHeader className="sr-only">
+            <DialogTitle>{selectedPhoto?.title || 'Photo View'}</DialogTitle>
+        </DialogHeader>
         {selectedPhoto && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="relative lg:col-span-2">
