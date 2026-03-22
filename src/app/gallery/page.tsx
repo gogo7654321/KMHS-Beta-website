@@ -26,7 +26,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { AddEditPhotoDialog } from '@/components/gallery/add-edit-photo-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, PlusCircle, ZoomIn, Pencil, Trash2, GripVertical, X } from 'lucide-react';
+import { Camera, PlusCircle, ZoomIn, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -270,8 +270,8 @@ export default function GalleryPage() {
       
       <Tabs defaultValue="All" onValueChange={(value) => setFilter(value as typeof photoCategories[number])} className="w-full">
         <div className="flex justify-center">
-          <TabsList className="mb-8 grid grid-cols-3 bg-card sm:grid-cols-5">
-            {photoCategories.map(type => <TabsTrigger key={type} value={type}>{type}</TabsTrigger>)}
+          <TabsList className="mb-8 grid grid-cols-3 bg-card sm:grid-cols-5 h-auto p-1">
+            {photoCategories.map(type => <TabsTrigger key={type} value={type} className="py-2">{type}</TabsTrigger>)}
           </TabsList>
         </div>
         <TabsContent value={filter} forceMount>{renderGrid()}</TabsContent>

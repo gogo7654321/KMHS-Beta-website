@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User as UserIcon, LogIn, LayoutDashboard, Shield, LogOut } from 'lucide-react';
+import { Menu, User as UserIcon, LogIn, LayoutDashboard, Shield, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
@@ -26,7 +26,7 @@ function Logos() {
   return (
     <Link href="/" className="flex items-center gap-3" aria-label="Home">
       {betaLogo && <Image src={betaLogo.imageUrl} alt="Logo" width={45} height={45} priority className="h-10 w-auto" />}
-      <span className="hidden font-headline text-xl font-bold text-primary sm:block">Kennesaw Mountain Beta</span>
+      <span className="hidden font-headline text-xl font-bold text-primary sm:block uppercase tracking-tight">KMHS Beta</span>
     </Link>
   );
 }
@@ -63,7 +63,7 @@ function UserNav() {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{isAdmin ? 'Administrator' : 'Beta Member'}</p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -113,47 +113,48 @@ export function Header() {
            <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild><Button variant="ghost" size="icon"><Menu className="h-6 w-6" /></Button></SheetTrigger>
             <SheetContent side="right" className="bg-background w-[300px] sm:w-[400px]">
-              <SheetHeader className="text-left">
+              <SheetHeader className="text-left border-b pb-4">
                 <SheetTitle><Logos /></SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col mt-8 gap-8">
-                <nav className="flex flex-col gap-4">
+              <div className="flex flex-col mt-6 gap-8">
+                <nav className="flex flex-col gap-2">
                   {navLinks.map((link) => (
                     <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}
-                      className={cn('text-xl font-medium py-2 border-b border-border/50', pathname === link.href ? 'text-primary' : 'text-muted-foreground')}>
+                      className={cn('text-lg font-semibold py-3 px-2 rounded-md transition-colors', 
+                        pathname === link.href ? 'bg-primary/10 text-primary' : 'hover:bg-secondary/50')}>
                       {link.label}
                     </Link>
                   ))}
                 </nav>
 
-                <div className="pt-4 border-t border-border">
+                <div className="pt-6 border-t border-border">
                   {!user ? (
-                    <Button asChild className="w-full font-bold gap-2" onClick={() => setMobileMenuOpen(false)}>
+                    <Button asChild className="w-full font-bold gap-2 h-12" onClick={() => setMobileMenuOpen(false)}>
                       <Link href="/login"><LogIn className="h-4 w-4" /> Log In</Link>
                     </Button>
                   ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg">
-                        <Avatar className="h-10 w-10 border border-primary/20">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                        <Avatar className="h-12 w-12 border-2 border-primary/20">
                           <AvatarImage src={user.photoURL ?? defaultAvatar?.imageUrl ?? ''} />
                           <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col">
-                          <p className="text-sm font-bold truncate max-w-[180px]">{user.email}</p>
-                          <p className="text-[10px] uppercase font-bold text-primary">{isAdmin ? 'Administrator' : 'Beta Member'}</p>
+                        <div className="flex flex-col min-w-0">
+                          <p className="text-sm font-bold truncate">{user.email}</p>
+                          <p className="text-[10px] uppercase font-bold text-primary tracking-widest">{isAdmin ? 'Administrator' : 'Beta Member'}</p>
                         </div>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-3">
                         {isAdmin && (
-                          <Button variant="outline" asChild className="justify-start gap-2 h-11" onClick={() => setMobileMenuOpen(false)}>
-                            <Link href="/admin-portal"><Shield className="h-4 w-4" /> Admin Portal</Link>
+                          <Button variant="outline" asChild className="justify-start gap-3 h-12 font-bold" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/admin-portal"><Shield className="h-5 w-5 text-primary" /> Admin Portal</Link>
                           </Button>
                         )}
-                        <Button variant="outline" asChild className="justify-start gap-2 h-11" onClick={() => setMobileMenuOpen(false)}>
-                          <Link href="/member-portal"><LayoutDashboard className="h-4 w-4" /> Member Dashboard</Link>
+                        <Button variant="outline" asChild className="justify-start gap-3 h-12 font-bold" onClick={() => setMobileMenuOpen(false)}>
+                          <Link href="/member-portal"><LayoutDashboard className="h-5 w-5 text-primary" /> Member Dashboard</Link>
                         </Button>
-                        <Button variant="destructive" className="justify-start gap-2 h-11" onClick={() => { auth.signOut(); setMobileMenuOpen(false); }}>
-                          <LogOut className="h-4 w-4" /> Sign Out
+                        <Button variant="destructive" className="justify-start gap-3 h-12 font-bold" onClick={() => { auth.signOut(); setMobileMenuOpen(false); }}>
+                          <LogOut className="h-5 w-5" /> Sign Out
                         </Button>
                       </div>
                     </div>

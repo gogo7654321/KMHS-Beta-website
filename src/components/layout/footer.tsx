@@ -24,14 +24,14 @@ export function Footer() {
           </div>
           <div className="flex flex-col items-center gap-4 sm:items-end">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" asChild>
+              <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10">
                 <Link href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
                 </Link>
               </Button>
             </div>
             <div className="text-center sm:text-right">
-              <a href="mailto:kmhsbeta@studizilla.com" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+              <a href="mailto:kmhsbeta@studizilla.com" className="text-sm text-muted-foreground transition-colors hover:text-primary font-medium">
                 kmhsbeta@studizilla.com
               </a>
               <p className="text-[10px] text-muted-foreground/40 mt-1 uppercase tracking-tighter">Website by Neil Mendpara</p>

@@ -4,8 +4,9 @@ import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/fire
 import { firebaseConfig } from '@/firebase/config';
 
 /**
- * Generates a dynamic sitemap.xml for Google Search Console.
- * High frequency and priority settings ensure KMHS content stays at the top of search.
+ * Generates a dynamic sitemap.xml.
+ * To resolve "URL not allowed" errors in GSC, ensure the baseUrl exactly matches 
+ * your verified property (including https and non-www/www preference).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kmhsbeta.com';
@@ -14,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   const db = getFirestore(app);
 
-  // Fetch all published blog posts to include in the sitemap
+  // Fetch all published blog posts
   let blogUrls: MetadataRoute.Sitemap = [];
   try {
     const blogsQuery = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'));
@@ -30,10 +31,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       }));
   } catch (error) {
-    console.error('Sitemap Generation: Could not fetch blogs', error);
+    console.error('Sitemap Generation Error:', error);
   }
 
-  // Define static routes with targeted SEO priorities
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
