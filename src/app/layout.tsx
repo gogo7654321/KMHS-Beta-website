@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://kmhsbeta.com',
+    url: 'https://kmhsbeta.org',
     siteName: 'KMHS Beta Club',
     title: 'KMHS Beta Club',
     description: 'Leading by serving others at Kennesaw Mountain High School. Join us for community impact and leadership development.',

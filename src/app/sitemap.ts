@@ -5,11 +5,10 @@ import { firebaseConfig } from '@/firebase/config';
 
 /**
  * Generates a dynamic sitemap.xml.
- * To resolve "URL not allowed" errors in GSC, ensure the baseUrl exactly matches 
- * your verified property (including https and non-www/www preference).
+ * Corrected to .org to match production domain and resolve GSC errors.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://kmhsbeta.com';
+  const baseUrl = 'https://kmhsbeta.org';
 
   // Initialize Firebase for server-side generation
   const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();

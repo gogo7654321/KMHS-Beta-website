@@ -18,7 +18,7 @@ import {
   SortableContext,
   useSortable,
   rectSortingStrategy,
-} from '@dnd-kit/sortable';
+} from '@radix-ui/react-sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import type { Admin, Photo, PhotoCategory } from '@/lib/types';
@@ -254,7 +254,7 @@ export default function GalleryPage() {
       <div className="flex flex-col items-center justify-between gap-4 mb-8 text-center sm:flex-row sm:text-left">
         <div>
           <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">Photo Gallery</h1>
-          <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">A glimpse into our activities, achievements, and memorable moments.</p>
+          <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">A glimpse into our activities, achievements, and memorable moments at Kennesaw Mountain High School.</p>
         </div>
         <div className="flex gap-2">
             {canManage && hasChanges && (
@@ -280,7 +280,7 @@ export default function GalleryPage() {
 
     <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
       <DialogContent className="max-w-5xl border-primary/50 bg-background/80 p-2 backdrop-blur-md">
-        <DialogHeader className="sr-only">
+        <DialogHeader>
             <DialogTitle>{selectedPhoto?.title || 'Photo View'}</DialogTitle>
         </DialogHeader>
         {selectedPhoto && (

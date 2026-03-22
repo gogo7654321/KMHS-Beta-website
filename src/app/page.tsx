@@ -178,7 +178,7 @@ export default function Home() {
             <h2 className="font-headline text-lg font-bold tracking-widest text-primary/80 uppercase mb-4">Kennesaw Mountain High School</h2>
             <h1 className="font-headline text-6xl font-black tracking-tighter text-primary sm:text-8xl lg:text-9xl drop-shadow-[0_2px_4px_rgba(251,191,36,0.2)]">BETA CLUB</h1>
             <p className="mt-4 max-w-3xl text-lg font-semibold text-foreground/90 md:text-xl">Lead by Serving Others.</p>
-            <p className="mt-2 max-w-2xl text-md text-foreground/70 md:text-lg">Fostering academic achievement, character, leadership, and service within the Kennesaw Mountain community.</p>
+            <p className="mt-2 max-w-2xl text-md text-foreground/70 md:text-lg">Fostering academic achievement, character, leadership, and service within the Kennesaw Mountain High School community.</p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg" className="group text-lg font-bold"><Link href="/events">Explore Events <MoveRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" /></Link></Button>
               <Button asChild variant="outline" size="lg" className="group text-lg border-primary text-primary hover:bg-primary/10 font-bold"><a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer">Follow Us <Instagram className="ml-2 h-5 w-5" /></a></Button>
