@@ -18,7 +18,7 @@ import {
   SortableContext,
   useSortable,
   rectSortingStrategy,
-} from '@radix-ui/react-sortable';
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import type { Admin, Photo, PhotoCategory } from '@/lib/types';
