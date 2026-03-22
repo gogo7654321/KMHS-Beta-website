@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -16,8 +15,6 @@ import { ArrowRight, Calendar, User } from 'lucide-react';
 export default function BlogPage() {
   const firestore = useFirestore();
   
-  // We remove the 'where' clause here to avoid requiring a composite index.
-  // The filtering for 'published' status is now handled in memory below.
   const blogsQuery = useMemoFirebase(() => 
     query(collection(firestore, 'blogs'), orderBy('createdAt', 'desc')),
     [firestore]
@@ -25,17 +22,16 @@ export default function BlogPage() {
   
   const { data: allBlogs, isLoading } = useCollection<BlogPost>(blogsQuery);
 
-  // In-memory filter for published stories
   const blogs = allBlogs?.filter(post => post.status === 'published');
 
   return (
     <div className="container mx-auto px-4 py-12 md:px-6">
       <div className="mb-12 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-primary">
-          Kennesaw Mountain High School Blog
+          Impact Stories
         </h1>
         <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-          Stories, updates, and impact from our chapter members and community.
+          Stories, updates, and community impact from Kennesaw Mountain High School Beta members.
         </p>
       </div>
 

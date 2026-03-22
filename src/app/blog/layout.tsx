@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Latest Stories',
-  description: 'Read the latest stories, impact highlights, and chapter news from Kennesaw Mountain High School Beta members leading through service.',
+  title: 'Impact Stories',
+  description: 'Read about the community impact and service projects led by Kennesaw Mountain High School Beta members. Stay updated with our latest news.',
 };
 
 export default function BlogLayout({ children }: { children: React.ReactNode }) {

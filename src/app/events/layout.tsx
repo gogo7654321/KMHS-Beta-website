@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Upcoming Events',
-  description: 'Stay updated with upcoming service projects, community fundraisers, and leadership meetings at Kennesaw Mountain High School.',
+  description: 'View the official calendar for Kennesaw Mountain High School Beta. Find meeting dates, service projects, and community fundraiser details.',
 };
 
 export default function EventsLayout({ children }: { children: React.ReactNode }) {

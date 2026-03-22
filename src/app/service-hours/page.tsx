@@ -7,8 +7,8 @@ import { Crown } from "lucide-react";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Chapter Service Impact',
-  description: 'Tracking the collective community impact and service leadership of Kennesaw Mountain High School Beta members.',
+  title: 'Chapter Impact',
+  description: 'Track the collective service hours and volunteer achievements of Kennesaw Mountain High School Beta members.',
 };
 
 export default function ServiceHoursPage() {
@@ -18,16 +18,16 @@ export default function ServiceHoursPage() {
     <div className="container mx-auto px-4 py-12 md:px-6">
       <div className="mb-12 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-          Chapter Service Hours
+          Chapter Impact
         </h1>
         <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-          Tracking our collective impact, one hour at a time.
+          Tracking our collective impact at Kennesaw Mountain High School, one hour at a time.
         </p>
       </div>
 
       <Card className="mb-8 border-border/50 bg-secondary/20">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Chapter Progress</CardTitle>
+          <CardTitle className="font-headline text-2xl">Service Progress</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-2 flex justify-between text-lg font-medium">

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { benefits } from '@/lib/data';
-import { MoveRight, Megaphone, Instagram, Camera } from 'lucide-react';
+import { MoveRight, Megaphone, Instagram } from 'lucide-react';
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import type { Admin, HomePageContent, BlogPost } from '@/lib/types';
@@ -128,46 +128,6 @@ function RecentStories() {
   );
 }
 
-function InstagramHighlights() {
-  const igPhotos = [
-    { id: 1, url: 'https://picsum.photos/seed/ig1/600/600', hint: 'student volunteering' },
-    { id: 2, url: 'https://picsum.photos/seed/ig2/600/600', hint: 'chapter meeting' },
-    { id: 3, url: 'https://picsum.photos/seed/ig3/600/600', hint: 'service project' },
-    { id: 4, url: 'https://picsum.photos/seed/ig4/600/600', hint: 'awards ceremony' },
-    { id: 5, url: 'https://picsum.photos/seed/ig5/600/600', hint: 'school spirit' },
-    { id: 6, url: 'https://picsum.photos/seed/ig6/600/600', hint: 'community impact' },
-  ];
-
-  return (
-    <section className="w-full py-20 bg-background">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-3 text-primary mb-4">
-            <Instagram className="h-6 w-6" />
-          </div>
-          <h2 className="font-headline text-4xl font-bold tracking-tighter">Instagram Highlights</h2>
-          <p className="mt-4 text-muted-foreground">Follow our journey @kmhsbetaclub for real-time impact.</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {igPhotos.map((photo) => (
-            <a key={photo.id} href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" className="group relative aspect-square overflow-hidden rounded-md">
-              <Image src={photo.url} alt="Instagram Post" fill sizes="(max-width: 768px) 50vw, 16vw" data-ai-hint={photo.hint} className="object-cover transition-transform duration-500 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
-                <Camera className="text-white h-8 w-8" />
-              </div>
-            </a>
-          ))}
-        </div>
-        <div className="mt-10 text-center">
-          <Button asChild size="lg" className="font-bold">
-            <a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer">View Full Feed</a>
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function Home() {
   return (
     <div className="flex flex-col">
@@ -212,7 +172,6 @@ export default function Home() {
       </section>
 
       <RecentStories />
-      <InstagramHighlights />
     </div>
   );
 }

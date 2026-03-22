@@ -219,7 +219,7 @@ export default function EventsPage() {
       <div className="flex flex-col items-center justify-between gap-4 mb-12 text-center sm:flex-row sm:text-left">
         <div>
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
-            Chapter Events
+            Upcoming Events
             </h1>
             <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
             Stay updated with Kennesaw Mountain High School Beta activities and achievements.
