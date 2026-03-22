@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: 'KMHS Beta Club',
     template: '%s'
   },
-  description: 'The official National Beta Club chapter at Kennesaw Mountain High School. We lead through community service and academic excellence, developing the next generation of student leaders.',
+  description: 'Leading by serving others at Kennesaw Mountain High School. Our National Beta Club chapter fosters academic achievement, character, and student leadership through community impact.',
   keywords: [
     'Kennesaw Mountain High School', 
     'KMHS', 
@@ -21,10 +21,13 @@ export const metadata: Metadata = {
     'Cobb County Schools', 
     'Service Hours', 
     'High School Volunteering', 
-    'Kennesaw Student Leadership'
+    'Kennesaw Student Leadership',
+    'KMHS Magnet',
+    'Academy of Mathematics Medical and Engineering'
   ],
   authors: [{ name: 'Kennesaw Mountain Beta' }],
   creator: 'Kennesaw Mountain High School',
+  metadataBase: new URL('https://kmhsbeta.org'),
   icons: {
     icon: [
       { url: '/kmhs%20beta%20club%20logo.png' },

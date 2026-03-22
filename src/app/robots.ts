@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 /**
  * Directs search crawlers to the sitemap and ensures all public content is indexable.
- * Pointing to .org domain.
+ * Optimized for kmhsbeta.org domain.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -14,7 +14,9 @@ export default function robots(): MetadataRoute.Robots {
         '/admin/', 
         '/member-portal/', 
         '/portal/', 
-        '/api/'
+        '/api/',
+        '/login/',
+        '/signup/'
       ],
     },
     sitemap: 'https://kmhsbeta.org/sitemap.xml',

@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Chapter Impact',
-  description: 'Track the collective service hours and volunteer achievements of Kennesaw Mountain High School Beta members.',
+  description: 'Track the collective service hours and volunteer achievements of Kennesaw Mountain High School Beta members as we lead by serving others.',
 };
 
 export default function ServiceHoursPage() {
@@ -17,7 +17,7 @@ export default function ServiceHoursPage() {
   return (
     <div className="container mx-auto px-4 py-12 md:px-6">
       <div className="mb-12 text-center">
-        <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl">
+        <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl text-primary">
           Chapter Impact
         </h1>
         <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">

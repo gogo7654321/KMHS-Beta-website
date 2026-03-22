@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Join',
-  description: 'Create your KMHS Beta student member or officer account.',
+  title: 'Join the Chapter',
+  description: 'Create your KMHS Beta student member or officer account to start serving the Kennesaw Mountain High School community.',
   robots: {
     index: false,
     follow: false,
