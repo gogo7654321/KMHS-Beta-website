@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -125,7 +124,7 @@ function AdminCard({ admin, isDraggable }: { admin: Admin; isDraggable: boolean 
               ) : (
                 <LinkIcon className="mr-2 h-4 w-4" />
               )}
-              View Portfolio
+              Studizilla
             </Link>
           </Button>
         )}
