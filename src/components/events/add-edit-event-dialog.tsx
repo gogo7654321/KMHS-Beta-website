@@ -5,7 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,11 +64,11 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       title: '',
       description: '',
       location: '',
-      date: undefined,
+      date: new Date(),
       time: '12:00',
       endTime: '13:00',
       types: [],
-      albumId: '',
+      albumId: 'none',
     },
   });
 
@@ -83,7 +84,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
           time: format(eventDate, 'HH:mm'),
           endTime: event.endTime || format(new Date(eventDate.getTime() + 3600000), 'HH:mm'),
           types: event.types || [],
-          albumId: event.albumId || '',
+          albumId: event.albumId || 'none',
         });
       } else {
         form.reset({
@@ -94,7 +95,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
             time: '12:00',
             endTime: '13:00',
             types: [],
-            albumId: '',
+            albumId: 'none',
         });
       }
     }
@@ -243,7 +244,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                 <FormField control={form.control} name="albumId" render={({ field }) => (
                     <FormItem>
                         <FormLabel className="text-xs">Link to Gallery Album</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                                 <SelectTrigger className="bg-background">
                                     <SelectValue placeholder="No album linked" />

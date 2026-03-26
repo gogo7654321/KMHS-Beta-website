@@ -4,19 +4,19 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, where, deleteDoc } from 'firebase/firestore';
-import type { Admin, Album, Photo } from '@/lib/types';
+import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
+import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
@@ -37,7 +37,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
       <CardHeader className="p-4">
         <CardTitle className="text-lg line-clamp-1 group-hover:text-primary transition-colors">{album.title}</CardTitle>
         <CardDescription className="text-xs flex justify-between">
-            <span>{format(new Date(album.createdAt), 'MMM d, yyyy')}</span>
+            <span>{album.createdAt ? format(new Date(album.createdAt), 'MMM d, yyyy') : 'Recently Created'}</span>
         </CardDescription>
       </CardHeader>
     </Card>
@@ -63,10 +63,17 @@ export default function GalleryPage() {
   const { data: albums, isLoading: isAlbumsLoading } = useCollection<Album>(albumsQuery);
 
   const photosQuery = useMemoFirebase(() => 
-    albumId ? query(collection(firestore, 'photos'), where('albumId', '==', albumId), orderBy('order', 'asc')) : null,
+    albumId ? query(collection(firestore, 'photos'), where('albumId', '==', albumId)) : null,
     [firestore, albumId]
   );
   const { data: photos, isLoading: isPhotosLoading } = useCollection<Photo>(photosQuery);
+
+  const linkedEventQuery = useMemoFirebase(() => 
+    albumId ? query(collection(firestore, 'events'), where('albumId', '==', albumId), limit(1)) : null,
+    [firestore, albumId]
+  );
+  const { data: linkedEvents } = useCollection<Event>(linkedEventQuery);
+  const linkedEvent = linkedEvents?.[0];
 
   const currentAlbum = albums?.find(a => a.id === albumId);
 
@@ -114,13 +121,36 @@ export default function GalleryPage() {
                 )}
             </div>
 
+            {linkedEvent && (
+                <Card className="mb-8 border-primary/30 bg-primary/5">
+                    <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 text-center sm:text-left">
+                            <div className="bg-primary/10 p-3 rounded-full">
+                                <CalendarIcon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Associated Event</p>
+                                <h3 className="font-headline text-xl font-bold">{linkedEvent.title}</h3>
+                                <p className="text-xs text-muted-foreground">{format(new Date(linkedEvent.dateTime), 'PPPP')}</p>
+                            </div>
+                        </div>
+                        <Button asChild variant="outline" className="font-bold gap-2">
+                            <Link href="/events">
+                                <ExternalLink className="h-4 w-4" />
+                                Event Details
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {isPhotosLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(i => <Skeleton key={i} className="aspect-square w-full rounded-lg" />)}
                 </div>
             ) : photos && photos.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {photos.map(photo => (
+                    {photos.sort((a, b) => (a.order || 0) - (b.order || 0)).map(photo => (
                         <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg bg-secondary/20 border border-border/40">
                             {photo.mediaType === 'video' ? (
                                 <div className="relative h-full w-full bg-black flex items-center justify-center">
