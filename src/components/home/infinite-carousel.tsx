@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, limit, orderBy } from 'firebase/firestore';
+import { collection, query, limit } from 'firebase/firestore';
 import type { Photo } from '@/lib/types';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,15 +11,34 @@ import { ImageIcon } from 'lucide-react';
 export function InfiniteCarousel() {
   const firestore = useFirestore();
   
-  // Fetch recent photos for the carousel
+  // Fetch more photos to ensure variety, without orderBy to avoid index issues
   const photosQuery = useMemoFirebase(
-    () => query(collection(firestore, 'photos'), orderBy('createdAt', 'desc'), limit(15)),
+    () => query(collection(firestore, 'photos'), limit(40)),
     [firestore]
   );
   
   const { data: photos, isLoading } = useCollection<Photo>(photosQuery);
 
-  if (isLoading) {
+  // Filter and sort client-side to be resilient
+  const imagePhotos = useMemo(() => {
+    if (!photos) return [];
+    return [...photos]
+      .filter(p => p.mediaType === 'image')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 15);
+  }, [photos]);
+  
+  // If no photos exist yet, show a subtle placeholder
+  if (!isLoading && imagePhotos.length === 0) {
+    return (
+      <div className="w-full bg-secondary/5 py-16 border-y border-border/40 flex flex-col items-center justify-center text-muted-foreground/30">
+        <ImageIcon className="h-12 w-12 mb-2" />
+        <p className="text-xs uppercase font-bold tracking-widest">Gallery empty — Upload photos to see them here</p>
+      </div>
+    );
+  }
+
+  if (isLoading && imagePhotos.length === 0) {
     return (
       <div className="w-full overflow-hidden bg-secondary/5 py-12 border-y border-border/40">
         <div className="flex gap-6 px-6">
@@ -31,23 +50,8 @@ export function InfiniteCarousel() {
     );
   }
 
-  // Filter for only images
-  const imagePhotos = photos?.filter(p => p.mediaType === 'image') || [];
-  
-  // If no photos exist yet, show a subtle placeholder
-  if (imagePhotos.length === 0) {
-    return (
-      <div className="w-full bg-secondary/5 py-16 border-y border-border/40 flex flex-col items-center justify-center text-muted-foreground/30">
-        <ImageIcon className="h-12 w-12 mb-2" />
-        <p className="text-xs uppercase font-bold tracking-widest">Gallery empty — Upload photos to see them here</p>
-      </div>
-    );
-  }
-
-  // Ensure the marquee is always full by repeating items to reach a minimum count
-  const minItems = 15;
-  const repeatCount = Math.ceil(minItems / imagePhotos.length);
-  const carouselItems = Array(repeatCount * 2).fill(imagePhotos).flat();
+  // Ensure the marquee is always full by repeating items to reach a minimum count for seamless loop
+  const carouselItems = Array(4).fill(imagePhotos).flat();
 
   return (
     <div className="relative w-full overflow-hidden bg-secondary/5 py-12 border-y border-border/40">
