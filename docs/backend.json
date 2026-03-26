@@ -43,6 +43,10 @@
         "rsvpEnabled": {
           "type": "boolean",
           "description": "Indicates if RSVP is enabled for the event."
+        },
+        "albumId": {
+          "type": "string",
+          "description": "Optional reference to a gallery album."
         }
       },
       "required": [
@@ -54,6 +58,37 @@
         "types",
         "rsvpEnabled"
       ]
+    },
+    "Album": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Album",
+      "type": "object",
+      "description": "A group of photos from an event or activity.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "coverImageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "title", "createdAt"]
+    },
+    "Photo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Photo",
+      "type": "object",
+      "description": "A single photo in the gallery.",
+      "properties": {
+        "id": { "type": "string" },
+        "albumId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "albumId", "imageUrl", "createdAt"]
     },
     "ServiceHour": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -237,6 +272,26 @@
             "$ref": "#/backend/entities/BlogPost"
           },
           "description": "Chapter blog articles."
+        }
+      },
+      {
+        "path": "/albums/{albumId}",
+        "definition": {
+          "entityName": "Album",
+          "schema": {
+            "$ref": "#/backend/entities/Album"
+          },
+          "description": "Gallery albums."
+        }
+      },
+      {
+        "path": "/photos/{photoId}",
+        "definition": {
+          "entityName": "Photo",
+          "schema": {
+            "$ref": "#/backend/entities/Photo"
+          },
+          "description": "Gallery photos."
         }
       }
     ]

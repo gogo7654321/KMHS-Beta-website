@@ -25,7 +25,6 @@ service cloud.firestore {
     // --- Collection Specific Rules ---
 
     match /admin/{userId} {
-      // Leadership profiles MUST be public so guests can see the team.
       allow read: if true;
       allow write: if isSuperAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
@@ -36,42 +35,39 @@ service cloud.firestore {
     }
 
     match /service-hours/{hourId} {
-      // Priority Super Admin bypass
       allow read, write: if isSuperAdmin();
-
-      // Explicitly handle list/query operations for relevant users
       allow list: if isAdmin() || (isSignedIn() && request.auth.uid != null);
-      
       allow get: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid);
       allow create: if isAdmin() || (isSignedIn() && request.resource.data.memberId == request.auth.uid);
       allow update, delete: if isAdmin() || (isSignedIn() && resource.data.memberId == request.auth.uid && resource.data.status == 'pending');
     }
 
     match /blogs/{blogId} {
-      // Blogs are public for SEO and AdSense
       allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /events/{eventId} {
-      // Events are public for student information
       allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /siteContent/{docId} {
-      // General site text like gallery settings or home announcements
+      allow read, list: if true;
+      allow write: if isAdmin();
+    }
+
+    match /albums/{albumId} {
       allow read, list: if true;
       allow write: if isAdmin();
     }
 
     match /photos/{photoId} {
-      // Gallery photos are public
       allow read, list: if true;
       allow write: if isAdmin();
     }
 
-    // Default catch-all (Must remain below prioritized collection matches)
+    // Default catch-all
     match /{document=**} {
       allow read: if isSignedIn() || isSuperAdmin();
       allow write: if isAdmin() || isSuperAdmin();

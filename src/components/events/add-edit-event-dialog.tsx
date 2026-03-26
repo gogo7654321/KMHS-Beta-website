@@ -1,11 +1,12 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useFirestore, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
@@ -15,9 +16,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { Event, EventType } from '@/lib/types';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import type { Event, EventType, Album } from '@/lib/types';
+import { CalendarIcon, Loader2, Link as LinkIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -34,6 +36,7 @@ const eventFormSchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm.'),
   endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format. Use HH:mm.').optional(),
   types: z.array(z.string()).min(1, 'Select at least one event type.'),
+  albumId: z.string().optional(),
 });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
@@ -51,6 +54,9 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
   const firestore = useFirestore();
   const { toast } = useToast();
 
+  const albumsQuery = useMemoFirebase(() => query(collection(firestore, 'albums'), orderBy('createdAt', 'desc')), [firestore]);
+  const { data: albums } = useCollection<Album>(albumsQuery);
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
@@ -61,6 +67,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       time: '12:00',
       endTime: '13:00',
       types: [],
+      albumId: '',
     },
   });
 
@@ -76,6 +83,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
           time: format(eventDate, 'HH:mm'),
           endTime: event.endTime || format(new Date(eventDate.getTime() + 3600000), 'HH:mm'),
           types: event.types || [],
+          albumId: event.albumId || '',
         });
       } else {
         form.reset({
@@ -86,6 +94,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
             time: '12:00',
             endTime: '13:00',
             types: [],
+            albumId: '',
         });
       }
     }
@@ -107,6 +116,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
         endTime: data.endTime,
         types: data.types as EventType[],
         rsvpEnabled: false,
+        albumId: data.albumId === 'none' ? undefined : data.albumId,
       };
 
       let eventRef;
@@ -123,17 +133,13 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
 
       toast({
         title: `Event ${mode === 'add' ? 'Created' : 'Updated'}`,
-        description: `'${data.title}' has been saved successfully.`,
+        description: `'${data.title}' saved.`,
       });
 
       onEventAddedOrUpdated?.();
       setIsOpen(false);
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Save Failed',
-        description: error.message || 'An unexpected error occurred.',
-      });
+      toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -146,13 +152,13 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-xl">{mode === 'add' ? 'Add New Event' : 'Edit Event'}</DialogTitle>
           <DialogDescription>
-            {mode === 'add' ? 'Fill out the details for the new event.' : `Editing '${event?.title}'.`}
+            Configure the details and optional gallery linkage for this event.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <FormField control={form.control} name="title" render={({ field }) => (
-                <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Annual Food Drive" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Winter Interest Meeting" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
              
              <FormField
@@ -160,13 +166,8 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
               name="types"
               render={() => (
                 <FormItem>
-                  <div className="mb-2">
-                    <FormLabel className="text-base">Event Categories</FormLabel>
-                    <FormDescription className="text-xs">
-                      Select one or more categories.
-                    </FormDescription>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <FormLabel className="text-sm font-semibold">Event Categories</FormLabel>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
                     {eventTypes.map((type) => (
                       <FormField
                         key={type}
@@ -234,11 +235,39 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
                   )}/>
                 </div>
             </div>
+
+            <div className="rounded-lg border bg-secondary/10 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-primary">
+                    <LinkIcon className="h-4 w-4" /> Gallery Linkage
+                </div>
+                <FormField control={form.control} name="albumId" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-xs">Link to Gallery Album</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="No album linked" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="none">None (No Link)</SelectItem>
+                                {albums?.map(album => (
+                                    <SelectItem key={album.id} value={album.id}>{album.title}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormDescription className="text-[10px]">
+                            Links this event to a collection of photos.
+                        </FormDescription>
+                    </FormItem>
+                )}/>
+            </div>
+
             <FormField control={form.control} name="location" render={({ field }) => (
-                <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., KMHS Front Entrance" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., KMHS Fine Arts Hall" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="A brief description of the event." className="resize-none min-h-[100px]" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Full event details..." className="resize-none min-h-[100px]" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
               <Button type="submit" disabled={isLoading} className="w-full font-bold h-12 sm:h-10">

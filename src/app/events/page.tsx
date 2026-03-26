@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import type { Event, EventType, Admin } from '@/lib/types';
-import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History, Share2, Copy } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, PlusCircle, Pencil, Trash2, History, Share2, Copy, Image as ImageIcon } from 'lucide-react';
 import { format, isPast, parse } from 'date-fns';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, doc, query, orderBy } from 'firebase/firestore';
@@ -16,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import Link from 'next/link';
 
 const eventTypes: ['All', ...EventType[]] = ['All', 'Meeting', 'Service', 'Fundraiser', 'Social'];
 
@@ -104,6 +106,18 @@ function EventCard({ event, canManage, isEventPast }: { event: Event, canManage:
         )}>
             {event.description}
         </p>
+        
+        {event.albumId && (
+            <Button asChild variant={isEventPast ? "outline" : "secondary"} size="sm" className={cn(
+                "mt-6 w-full font-bold gap-2",
+                !isEventPast && "bg-amber-950 text-amber-50 hover:bg-amber-900 border-none"
+            )}>
+                <Link href={`/gallery?album=${event.albumId}`}>
+                    <ImageIcon className="h-4 w-4" />
+                    View Photos
+                </Link>
+            </Button>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4">
         <div className={cn(

@@ -23,6 +23,7 @@ export type Event = {
   location: string;
   types: EventType[];
   rsvpEnabled?: boolean;
+  albumId?: string;
 };
 
 export type Member = {
@@ -61,11 +62,20 @@ export type ServiceHourEntry = {
 
 export type PhotoCategory = 'Service' | 'Academics' | 'Social' | 'Ceremonies';
 
-export type Photo = {
+export type Album = {
   id: string;
   title: string;
-  description: string;
-  category: PhotoCategory;
+  description?: string;
+  coverImageUrl?: string;
+  createdAt: string;
+  order?: number;
+};
+
+export type Photo = {
+  id: string;
+  albumId: string;
+  title?: string;
+  description?: string;
   imageUrl: string;
   createdAt: string; // ISO string
   order?: number;
