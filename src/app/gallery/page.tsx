@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, useStorage } from '@/firebase';
 import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { AddEditPhotoDialog } from '@/components/gallery/add-edit-photo-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2, Pencil } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2, Pencil, RotateCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -51,8 +52,10 @@ export default function GalleryPage() {
   const albumId = searchParams.get('album');
   
   const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
+  const [isRotatingId, setIsRotatingId] = useState<string | null>(null);
   
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const { user } = useUser();
   
@@ -69,7 +72,6 @@ export default function GalleryPage() {
   );
   const { data: photos, isLoading: isPhotosLoading } = useCollection<Photo>(photosQuery);
 
-  // Get selected photo data in real-time for likes/comments
   const selectedPhotoRef = useMemoFirebase(() => selectedPhotoId ? doc(firestore, 'photos', selectedPhotoId) : null, [firestore, selectedPhotoId]);
   const { data: selectedPhoto } = useDoc<Photo>(selectedPhotoRef);
 
@@ -99,6 +101,67 @@ export default function GalleryPage() {
         toast({ title: 'Cover Updated', description: 'Album cover image set successfully.' });
     } catch (e: any) {
         toast({ variant: 'destructive', title: 'Error', description: e.message });
+    }
+  };
+
+  const handleQuickRotate = async (photo: Photo) => {
+    if (photo.mediaType === 'video' || isRotatingId) return;
+    
+    setIsRotatingId(photo.id);
+    const { id: tid } = toast({ title: 'Rotating image...', description: 'Applying 90° rotation.' });
+    
+    try {
+      // 1. Create temporary image to load source
+      const img = new (window as any).Image();
+      img.crossOrigin = 'anonymous'; // Important for CORS
+      img.src = photo.imageUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Failed to load image for processing.'));
+      });
+
+      // 2. Setup canvas for rotation
+      const canvas = document.createElement('canvas');
+      canvas.width = img.height; // Swapped for 90deg
+      canvas.height = img.width;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas processing error');
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      // 3. Convert to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Processing failed')), 'image/jpeg', 0.9);
+      });
+
+      // 4. Upload new file
+      const filePath = `gallery/${albumId}/${Date.now()}_rotated.jpg`;
+      const storageRef = ref(storage, filePath);
+      await uploadBytes(storageRef, blob);
+      const newUrl = await getDownloadURL(storageRef);
+
+      // 5. Update Firestore
+      const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
+      setDocumentNonBlocking(doc(firestore, 'photos', photo.id), { imageUrl: newUrl }, { merge: true });
+
+      // 6. Clean up old storage file if applicable
+      if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
+        try {
+          const oldRef = ref(storage, photo.imageUrl);
+          await deleteObject(oldRef);
+        } catch (e) {
+          console.warn("Cleanup warning:", e);
+        }
+      }
+
+      toast({ id: tid, title: 'Rotation Complete', description: 'Photo updated successfully.' });
+    } catch (e: any) {
+      toast({ id: tid, variant: 'destructive', title: 'Rotation Error', description: e.message });
+    } finally {
+      setIsRotatingId(null);
     }
   };
 
@@ -189,16 +252,22 @@ export default function GalleryPage() {
                                     <ZoomIn className="h-4 w-4" /> View
                                 </Button>
                                 {canManage && (
-                                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex gap-2 flex-wrap justify-center p-2" onClick={(e) => e.stopPropagation()}>
                                         <AddEditPhotoDialog albumId={albumId} mode="edit" photo={photo} photoCount={photos.length}>
                                             <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20">
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </AddEditPhotoDialog>
+                                        
                                         {photo.mediaType !== 'video' && (
-                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
-                                                <ImageIcon className="h-4 w-4" />
-                                            </Button>
+                                            <>
+                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleQuickRotate(photo)} disabled={isRotatingId === photo.id} title="Quick Rotate 90°">
+                                                    {isRotatingId === photo.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}
+                                                </Button>
+                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
+                                                    <ImageIcon className="h-4 w-4" />
+                                                </Button>
+                                            </>
                                         )}
                                         <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeletePhoto(photo.id)}>
                                             <Trash2 className="h-4 w-4" />
