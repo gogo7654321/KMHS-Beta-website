@@ -10,6 +10,7 @@ import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import type { Admin, HomePageContent, BlogPost } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnnouncementEditor } from '@/components/home/announcement-editor';
+import { InfiniteCarousel } from '@/components/home/infinite-carousel';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
@@ -147,6 +148,8 @@ export default function Home() {
         </div>
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
+
+      <InfiniteCarousel />
 
       <section id="benefits" className="w-full py-20 md:py-32 bg-background">
         <div className="container mx-auto px-4 md:px-6">
