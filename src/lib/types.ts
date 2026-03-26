@@ -81,6 +81,15 @@ export type Photo = {
   createdAt: string; // ISO string
   order?: number;
   names?: string[];
+  likes?: string[]; // Array of User UIDs
+};
+
+export type PhotoComment = {
+  id: string;
+  userId: string;
+  userName: string;
+  text: string;
+  createdAt: string;
 };
 
 export type Admin = {

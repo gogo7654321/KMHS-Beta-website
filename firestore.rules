@@ -64,7 +64,15 @@ service cloud.firestore {
 
     match /photos/{photoId} {
       allow read, list: if true;
+      // Allow users to update likes
+      allow update: if isAdmin() || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']));
       allow write: if isAdmin();
+
+      match /comments/{commentId} {
+        allow read, list: if true;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      }
     }
 
     // Default catch-all

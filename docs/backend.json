@@ -87,9 +87,28 @@
         "title": { "type": "string" },
         "description": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "order": { "type": "number" }
+        "order": { "type": "number" },
+        "likes": {
+          "type": "array",
+          "description": "Array of User UIDs who liked this item.",
+          "items": { "type": "string" }
+        }
       },
       "required": ["id", "albumId", "imageUrl", "createdAt"]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "A user comment on a piece of media.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userName", "text", "createdAt"]
     },
     "ServiceHour": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -293,6 +312,16 @@
             "$ref": "#/backend/entities/Photo"
           },
           "description": "Gallery photos and videos."
+        }
+      },
+      {
+        "path": "/photos/{photoId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "User comments on media."
         }
       }
     ]

@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { MediaSocialSection } from '@/components/gallery/media-social-section';
 
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
@@ -49,7 +50,7 @@ export default function GalleryPage() {
   const router = useRouter();
   const albumId = searchParams.get('album');
   
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
   
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -67,6 +68,10 @@ export default function GalleryPage() {
     [firestore, albumId]
   );
   const { data: photos, isLoading: isPhotosLoading } = useCollection<Photo>(photosQuery);
+
+  // Get selected photo data in real-time for likes/comments
+  const selectedPhotoRef = useMemoFirebase(() => selectedPhotoId ? doc(firestore, 'photos', selectedPhotoId) : null, [firestore, selectedPhotoId]);
+  const { data: selectedPhoto } = useDoc<Photo>(selectedPhotoRef);
 
   const linkedEventQuery = useMemoFirebase(() => 
     albumId ? query(collection(firestore, 'events'), where('albumId', '==', albumId), limit(1)) : null,
@@ -151,7 +156,7 @@ export default function GalleryPage() {
             ) : photos && photos.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {photos.sort((a, b) => (a.order || 0) - (b.order || 0)).map(photo => (
-                        <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg bg-secondary/20 border border-border/40">
+                        <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg bg-secondary/20 border border-border/40 cursor-pointer" onClick={() => setSelectedPhotoId(photo.id)}>
                             {photo.mediaType === 'video' ? (
                                 <div className="relative h-full w-full bg-black flex items-center justify-center">
                                     <video src={photo.imageUrl} className="h-full w-full object-cover opacity-60" muted />
@@ -167,11 +172,19 @@ export default function GalleryPage() {
                                 />
                             )}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
-                                <Button size="sm" variant="secondary" onClick={() => setSelectedPhoto(photo)} className="font-bold gap-2">
+                                <div className="flex gap-4 mb-2">
+                                    <div className="flex items-center gap-1 text-white text-xs font-bold">
+                                        <Heart className="h-4 w-4 fill-primary text-primary" /> {photo.likes?.length || 0}
+                                    </div>
+                                    <div className="flex items-center gap-1 text-white text-xs font-bold">
+                                        <MessageSquare className="h-4 w-4 text-primary" />
+                                    </div>
+                                </div>
+                                <Button size="sm" variant="secondary" className="font-bold gap-2">
                                     <ZoomIn className="h-4 w-4" /> View
                                 </Button>
                                 {canManage && (
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                                         {photo.mediaType !== 'video' && (
                                             <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
                                                 <ImageIcon className="h-4 w-4" />
@@ -193,14 +206,15 @@ export default function GalleryPage() {
                 </div>
             )}
 
-            <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-                <DialogContent className="max-w-5xl bg-background/95 border-primary/20 p-2 backdrop-blur-md">
+            <Dialog open={!!selectedPhotoId} onOpenChange={() => setSelectedPhotoId(null)}>
+                <DialogContent className="max-w-6xl h-[90vh] md:h-[80vh] bg-background border-primary/20 p-0 overflow-hidden flex flex-col md:flex-row">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Media Viewer</DialogTitle>
                     </DialogHeader>
-                    {selectedPhoto && (
-                        <div className="relative aspect-video w-full flex items-center justify-center bg-black rounded-lg overflow-hidden">
-                            {selectedPhoto.mediaType === 'video' ? (
+                    
+                    <div className="flex-grow bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-0">
+                        {selectedPhoto ? (
+                            selectedPhoto.mediaType === 'video' ? (
                                 <video 
                                     src={selectedPhoto.imageUrl} 
                                     className="max-h-full max-w-full" 
@@ -208,10 +222,22 @@ export default function GalleryPage() {
                                     autoPlay 
                                 />
                             ) : (
-                                <Image src={selectedPhoto.imageUrl} alt="Zoomed view" fill className="object-contain" />
-                            )}
-                        </div>
-                    )}
+                                <Image 
+                                    src={selectedPhoto.imageUrl} 
+                                    alt="Zoomed view" 
+                                    fill 
+                                    className="object-contain" 
+                                    priority
+                                />
+                            )
+                        ) : (
+                            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        )}
+                    </div>
+
+                    <div className="w-full md:w-[350px] shrink-0 h-full overflow-hidden flex flex-col">
+                        {selectedPhoto && <MediaSocialSection photo={selectedPhoto} />}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
