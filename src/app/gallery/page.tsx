@@ -11,7 +11,7 @@ import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { AddEditPhotoDialog } from '@/components/gallery/add-edit-photo-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2, Pencil, RotateCw } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2, Pencil, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -108,12 +108,11 @@ export default function GalleryPage() {
     if (photo.mediaType === 'video' || isRotatingId) return;
     
     setIsRotatingId(photo.id);
-    const { id: tid } = toast({ title: 'Rotating image...', description: 'Applying 90° rotation.' });
+    const { id: tid } = toast({ title: 'Rotating image...', description: 'Applying -90° rotation.' });
     
     try {
-      // 1. Create temporary image to load source
       const img = new (window as any).Image();
-      img.crossOrigin = 'anonymous'; // Important for CORS
+      img.crossOrigin = 'anonymous';
       img.src = photo.imageUrl;
       
       await new Promise((resolve, reject) => {
@@ -121,33 +120,28 @@ export default function GalleryPage() {
         img.onerror = () => reject(new Error('Failed to load image for processing.'));
       });
 
-      // 2. Setup canvas for rotation
       const canvas = document.createElement('canvas');
-      canvas.width = img.height; // Swapped for 90deg
+      canvas.width = img.height;
       canvas.height = img.width;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas processing error');
 
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(Math.PI / 2);
+      ctx.rotate(-Math.PI / 2);
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
 
-      // 3. Convert to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Processing failed')), 'image/jpeg', 0.9);
       });
 
-      // 4. Upload new file
       const filePath = `gallery/${albumId}/${Date.now()}_rotated.jpg`;
       const storageRef = ref(storage, filePath);
       await uploadBytes(storageRef, blob);
       const newUrl = await getDownloadURL(storageRef);
 
-      // 5. Update Firestore
       const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
       setDocumentNonBlocking(doc(firestore, 'photos', photo.id), { imageUrl: newUrl }, { merge: true });
 
-      // 6. Clean up old storage file if applicable
       if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
         try {
           const oldRef = ref(storage, photo.imageUrl);
@@ -261,8 +255,8 @@ export default function GalleryPage() {
                                         
                                         {photo.mediaType !== 'video' && (
                                             <>
-                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleQuickRotate(photo)} disabled={isRotatingId === photo.id} title="Quick Rotate 90°">
-                                                    {isRotatingId === photo.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCw className="h-4 w-4" />}
+                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleQuickRotate(photo)} disabled={isRotatingId === photo.id} title="Quick Rotate -90°">
+                                                    {isRotatingId === photo.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
                                                 </Button>
                                                 <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
                                                     <ImageIcon className="h-4 w-4" />
