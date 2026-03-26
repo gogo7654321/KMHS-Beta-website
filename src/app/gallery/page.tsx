@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, Suspense } from 'react';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
@@ -52,7 +51,7 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   );
 }
 
-export default function GalleryPage() {
+function GalleryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const albumId = searchParams.get('album');
@@ -119,7 +118,6 @@ export default function GalleryPage() {
     const { id: tid } = toast({ title: 'Rotating media...', description: 'Applying -90° rotation.' });
     
     try {
-      // Logical metadata rotation is fast for both photos and videos
       const currentRotation = photo.rotation || 0;
       const newRotation = (currentRotation - 90) % 360;
       
@@ -339,5 +337,13 @@ export default function GalleryPage() {
           </div>
       )}
     </div>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-24 text-center"><Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" /></div>}>
+      <GalleryContent />
+    </Suspense>
   );
 }

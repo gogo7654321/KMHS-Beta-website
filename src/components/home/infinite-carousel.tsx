@@ -34,7 +34,7 @@ export function InfiniteCarousel() {
   // Filter for only images
   const imagePhotos = photos?.filter(p => p.mediaType === 'image') || [];
   
-  // If no photos exist yet, show a subtle placeholder or return null
+  // If no photos exist yet, show a subtle placeholder
   if (imagePhotos.length === 0) {
     return (
       <div className="w-full bg-secondary/5 py-16 border-y border-border/40 flex flex-col items-center justify-center text-muted-foreground/30">
@@ -44,8 +44,10 @@ export function InfiniteCarousel() {
     );
   }
 
-  // Repeat the photos to ensure the marquee loop is seamless even on large screens
-  const carouselItems = [...imagePhotos, ...imagePhotos, ...imagePhotos];
+  // Ensure the marquee is always full by repeating items to reach a minimum count
+  const minItems = 15;
+  const repeatCount = Math.ceil(minItems / imagePhotos.length);
+  const carouselItems = Array(repeatCount * 2).fill(imagePhotos).flat();
 
   return (
     <div className="relative w-full overflow-hidden bg-secondary/5 py-12 border-y border-border/40">
@@ -72,7 +74,6 @@ export function InfiniteCarousel() {
         ))}
       </div>
       
-      {/* Edge gradients for a professional fade effect */}
       <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-10" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-10" />
     </div>
