@@ -6,6 +6,7 @@ import { collection, query, limit, orderBy } from 'firebase/firestore';
 import type { Photo } from '@/lib/types';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ImageIcon } from 'lucide-react';
 
 export function InfiniteCarousel() {
   const firestore = useFirestore();
@@ -20,7 +21,7 @@ export function InfiniteCarousel() {
 
   if (isLoading) {
     return (
-      <div className="w-full overflow-hidden bg-secondary/5 py-12">
+      <div className="w-full overflow-hidden bg-secondary/5 py-12 border-y border-border/40">
         <div className="flex gap-6 px-6">
           {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-64 w-80 shrink-0 rounded-xl" />
@@ -30,13 +31,21 @@ export function InfiniteCarousel() {
     );
   }
 
-  // Filter for only images and ensure we have some data
+  // Filter for only images
   const imagePhotos = photos?.filter(p => p.mediaType === 'image') || [];
   
-  if (imagePhotos.length === 0) return null;
+  // If no photos exist yet, show a subtle placeholder or return null
+  if (imagePhotos.length === 0) {
+    return (
+      <div className="w-full bg-secondary/5 py-16 border-y border-border/40 flex flex-col items-center justify-center text-muted-foreground/30">
+        <ImageIcon className="h-12 w-12 mb-2" />
+        <p className="text-xs uppercase font-bold tracking-widest">Gallery empty — Upload photos to see them here</p>
+      </div>
+    );
+  }
 
-  // Repeat the photos to create a seamless infinite loop effect
-  const carouselItems = [...imagePhotos, ...imagePhotos];
+  // Repeat the photos to ensure the marquee loop is seamless even on large screens
+  const carouselItems = [...imagePhotos, ...imagePhotos, ...imagePhotos];
 
   return (
     <div className="relative w-full overflow-hidden bg-secondary/5 py-12 border-y border-border/40">
@@ -44,7 +53,7 @@ export function InfiniteCarousel() {
         {carouselItems.map((photo, index) => (
           <div
             key={`${photo.id}-${index}`}
-            className="group relative h-64 w-80 shrink-0 overflow-hidden rounded-xl border-2 border-border/40 shadow-lg transition-all duration-500 hover:border-primary/50 hover:shadow-primary/10"
+            className="group relative h-64 w-80 shrink-0 overflow-hidden rounded-xl border-2 border-border/40 shadow-lg transition-all duration-500 hover:border-primary/50 hover:shadow-primary/10 bg-muted"
           >
             <Image
               src={photo.imageUrl}
