@@ -3,14 +3,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
 import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
