@@ -88,6 +88,7 @@
         "description": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "order": { "type": "number" },
+        "rotation": { "type": "number", "description": "CSS rotation in degrees." },
         "likes": {
           "type": "array",
           "description": "Array of User UIDs who liked this item.",

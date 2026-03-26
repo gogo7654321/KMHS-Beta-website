@@ -80,6 +80,7 @@ export type Photo = {
   mediaType?: 'image' | 'video';
   createdAt: string; // ISO string
   order?: number;
+  rotation?: number; // CSS rotation in degrees
   names?: string[];
   likes?: string[]; // Array of User UIDs
 };

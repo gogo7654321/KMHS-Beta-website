@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, useStorage } from '@/firebase';
-import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
+import { collection, query, orderBy, doc, where, deleteDoc, limit, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { format } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MediaSocialSection } from '@/components/gallery/media-social-section';
+import { cn } from '@/lib/utils';
 
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
@@ -105,53 +107,62 @@ export default function GalleryPage() {
   };
 
   const handleQuickRotate = async (photo: Photo) => {
-    if (photo.mediaType === 'video' || isRotatingId) return;
+    if (isRotatingId) return;
     
     setIsRotatingId(photo.id);
-    const { id: tid } = toast({ title: 'Rotating image...', description: 'Applying -90° rotation.' });
+    const { id: tid } = toast({ title: 'Rotating media...', description: 'Applying -90° rotation.' });
     
     try {
-      const img = new (window as any).Image();
-      img.crossOrigin = 'anonymous';
-      img.src = photo.imageUrl;
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = () => reject(new Error('Failed to load image for processing.'));
-      });
+      if (photo.mediaType === 'video') {
+        // Videos use logical rotation via CSS metadata update (much faster, no re-upload)
+        const currentRotation = photo.rotation || 0;
+        const newRotation = (currentRotation - 90) % 360;
+        const { updateDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
+        updateDocumentNonBlocking(doc(firestore, 'photos', photo.id), { rotation: newRotation });
+        toast({ id: tid, title: 'Rotation Updated', description: 'Video orientation saved.' });
+      } else {
+        // Photos use "real" rotation via canvas/re-upload for cross-platform compatibility
+        const img = new (window as any).Image();
+        img.crossOrigin = 'anonymous';
+        img.src = photo.imageUrl;
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('Failed to load image for processing.'));
+        });
 
-      const canvas = document.createElement('canvas');
-      canvas.width = img.height;
-      canvas.height = img.width;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas processing error');
+        const canvas = document.createElement('canvas');
+        canvas.width = img.height;
+        canvas.height = img.width;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas processing error');
 
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
 
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Processing failed')), 'image/jpeg', 0.9);
-      });
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Processing failed')), 'image/jpeg', 0.9);
+        });
 
-      const filePath = `gallery/${albumId}/${Date.now()}_rotated.jpg`;
-      const storageRef = ref(storage, filePath);
-      await uploadBytes(storageRef, blob);
-      const newUrl = await getDownloadURL(storageRef);
+        const filePath = `gallery/${albumId}/${Date.now()}_rotated.jpg`;
+        const storageRef = ref(storage, filePath);
+        await uploadBytes(storageRef, blob);
+        const newUrl = await getDownloadURL(storageRef);
 
-      const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
-      setDocumentNonBlocking(doc(firestore, 'photos', photo.id), { imageUrl: newUrl }, { merge: true });
+        const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
+        setDocumentNonBlocking(doc(firestore, 'photos', photo.id), { imageUrl: newUrl, rotation: 0 }, { merge: true });
 
-      if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
-        try {
-          const oldRef = ref(storage, photo.imageUrl);
-          await deleteObject(oldRef);
-        } catch (e) {
-          console.warn("Cleanup warning:", e);
+        if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
+          try {
+            const oldRef = ref(storage, photo.imageUrl);
+            await deleteObject(oldRef);
+          } catch (e) {
+            console.warn("Cleanup warning:", e);
+          }
         }
+        toast({ id: tid, title: 'Rotation Complete', description: 'Photo updated successfully.' });
       }
-
-      toast({ id: tid, title: 'Rotation Complete', description: 'Photo updated successfully.' });
     } catch (e: any) {
       toast({ id: tid, variant: 'destructive', title: 'Rotation Error', description: e.message });
     } finally {
@@ -220,18 +231,26 @@ export default function GalleryPage() {
                     {photos.sort((a, b) => (a.order || 0) - (b.order || 0)).map(photo => (
                         <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg bg-secondary/20 border border-border/40 cursor-pointer" onClick={() => setSelectedPhotoId(photo.id)}>
                             {photo.mediaType === 'video' ? (
-                                <div className="relative h-full w-full bg-black flex items-center justify-center">
-                                    <video src={photo.imageUrl} className="h-full w-full object-cover opacity-60" muted />
+                                <div className="relative h-full w-full bg-black flex items-center justify-center overflow-hidden">
+                                    <video 
+                                        src={photo.imageUrl} 
+                                        className="h-full w-full object-cover opacity-60 transition-transform" 
+                                        style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
+                                        muted 
+                                    />
                                     <PlayCircle className="absolute h-12 w-12 text-white opacity-80 group-hover:scale-110 transition-transform" />
                                 </div>
                             ) : (
-                                <Image 
-                                    src={photo.imageUrl} 
-                                    alt="Gallery photo" 
-                                    fill 
-                                    sizes="(max-width: 768px) 50vw, 25vw"
-                                    className="object-cover transition-transform group-hover:scale-105" 
-                                />
+                                <div className="relative h-full w-full overflow-hidden">
+                                    <Image 
+                                        src={photo.imageUrl} 
+                                        alt="Gallery photo" 
+                                        fill 
+                                        sizes="(max-width: 768px) 50vw, 25vw"
+                                        className="object-cover transition-transform group-hover:scale-105" 
+                                        style={{ transform: `rotate(${photo.rotation || 0}deg)` }}
+                                    />
+                                </div>
                             )}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
                                 <div className="flex gap-4 mb-2">
@@ -253,15 +272,14 @@ export default function GalleryPage() {
                                             </Button>
                                         </AddEditPhotoDialog>
                                         
+                                        <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleQuickRotate(photo)} disabled={isRotatingId === photo.id} title="Quick Rotate -90°">
+                                            {isRotatingId === photo.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                                        </Button>
+                                        
                                         {photo.mediaType !== 'video' && (
-                                            <>
-                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleQuickRotate(photo)} disabled={isRotatingId === photo.id} title="Quick Rotate -90°">
-                                                    {isRotatingId === photo.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                                                </Button>
-                                                <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
-                                                    <ImageIcon className="h-4 w-4" />
-                                                </Button>
-                                            </>
+                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
+                                                <ImageIcon className="h-4 w-4" />
+                                            </Button>
                                         )}
                                         <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeletePhoto(photo.id)}>
                                             <Trash2 className="h-4 w-4" />
@@ -285,12 +303,13 @@ export default function GalleryPage() {
                         <DialogTitle>Media Viewer</DialogTitle>
                     </DialogHeader>
                     
-                    <div className="flex-grow bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-0">
+                    <div className="flex-grow bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-0 overflow-hidden">
                         {selectedPhoto ? (
                             selectedPhoto.mediaType === 'video' ? (
                                 <video 
                                     src={selectedPhoto.imageUrl} 
-                                    className="max-h-full max-w-full" 
+                                    className="max-h-full max-w-full transition-transform" 
+                                    style={{ transform: `rotate(${selectedPhoto.rotation || 0}deg)` }}
                                     controls 
                                     autoPlay 
                                 />
@@ -299,7 +318,8 @@ export default function GalleryPage() {
                                     src={selectedPhoto.imageUrl} 
                                     alt="Zoomed view" 
                                     fill 
-                                    className="object-contain" 
+                                    className="object-contain transition-transform" 
+                                    style={{ transform: `rotate(${selectedPhoto.rotation || 0}deg)` }}
                                     priority
                                 />
                             )
