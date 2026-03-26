@@ -42,13 +42,14 @@ const createPhotoFormSchema = (settings?: GallerySettings) => z.object({
 type PhotoFormValues = z.infer<ReturnType<typeof createPhotoFormSchema>>;
 
 interface AddEditPhotoDialogProps {
+  albumId: string;
   mode: 'add' | 'edit';
   photo?: Photo;
   children: React.ReactNode;
   photoCount: number;
 }
 
-export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEditPhotoDialogProps) {
+export function AddEditPhotoDialog({ albumId, mode, photo, children, photoCount }: AddEditPhotoDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<{ url: string; name: string } | null>(null);
@@ -126,7 +127,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
     const { id: tid } = toast({ title: 'Processing image...' });
     
     try {
-        const filePath = `gallery/${Date.now()}_${originalName}`;
+        const filePath = `gallery/${albumId}/${Date.now()}_${originalName}`;
         const storageRef = ref(storage, filePath);
         
         await uploadBytes(storageRef, blob);
@@ -162,6 +163,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
         const namesArray = data.names?.split(',').map(name => name.trim()).filter(name => name.length > 0) || [];
 
         const photoData = {
+            albumId,
             title: data.title || '',
             description: data.description || '',
             category: data.category,
@@ -169,6 +171,7 @@ export function AddEditPhotoDialog({ mode, photo, children, photoCount }: AddEdi
             createdAt: photo?.createdAt || new Date().toISOString(),
             names: namesArray,
             order: photo?.order ?? photoCount,
+            mediaType: 'image' as const,
         };
 
         let docRef;

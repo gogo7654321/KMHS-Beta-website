@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -9,8 +8,9 @@ import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
+import { AddEditPhotoDialog } from '@/components/gallery/add-edit-photo-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2 } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle, Calendar as CalendarIcon, ExternalLink, Heart, MessageSquare, Loader2, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -117,6 +117,11 @@ export default function GalleryPage() {
                 </div>
                 {canManage && (
                     <div className="flex gap-2 w-full md:w-auto">
+                        <AddEditPhotoDialog albumId={albumId} mode="add" photoCount={photos?.length || 0}>
+                            <Button variant="outline" className="flex-1 md:flex-none gap-2 font-bold">
+                                <Plus className="h-4 w-4" /> Add Photo
+                            </Button>
+                        </AddEditPhotoDialog>
                         <BulkUploadDialog albumId={albumId}>
                             <Button className="flex-1 md:flex-none gap-2 font-bold">
                                 <Plus className="h-4 w-4" /> Bulk Upload
@@ -185,6 +190,11 @@ export default function GalleryPage() {
                                 </Button>
                                 {canManage && (
                                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                        <AddEditPhotoDialog albumId={albumId} mode="edit" photo={photo} photoCount={photos.length}>
+                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20">
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                        </AddEditPhotoDialog>
                                         {photo.mediaType !== 'video' && (
                                             <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
                                                 <ImageIcon className="h-4 w-4" />
