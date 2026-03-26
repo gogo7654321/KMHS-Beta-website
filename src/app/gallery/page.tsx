@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
 import { BulkUploadDialog } from '@/components/gallery/bulk-upload-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn } from 'lucide-react';
+import { FolderPlus, Image as ImageIcon, ChevronLeft, Plus, Trash2, ZoomIn, PlayCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -73,7 +73,7 @@ export default function GalleryPage() {
   const handleDeletePhoto = async (id: string) => {
     try {
         await deleteDoc(doc(firestore, 'photos', id));
-        toast({ title: 'Photo Deleted' });
+        toast({ title: 'Item Deleted' });
     } catch (e: any) {
         toast({ variant: 'destructive', title: 'Delete Failed', description: e.message });
     }
@@ -101,7 +101,7 @@ export default function GalleryPage() {
                     <h1 className="font-headline text-4xl font-bold tracking-tight text-primary">
                         {currentAlbum?.title || 'Album View'}
                     </h1>
-                    <p className="mt-2 text-muted-foreground">{currentAlbum?.description || 'Photos from this activity.'}</p>
+                    <p className="mt-2 text-muted-foreground">{currentAlbum?.description || 'Photos and videos from this activity.'}</p>
                 </div>
                 {canManage && (
                     <div className="flex gap-2 w-full md:w-auto">
@@ -122,22 +122,31 @@ export default function GalleryPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {photos.map(photo => (
                         <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-lg bg-secondary/20 border border-border/40">
-                            <Image 
-                                src={photo.imageUrl} 
-                                alt="Gallery photo" 
-                                fill 
-                                sizes="(max-width: 768px) 50vw, 25vw"
-                                className="object-cover transition-transform group-hover:scale-105" 
-                            />
+                            {photo.mediaType === 'video' ? (
+                                <div className="relative h-full w-full bg-black flex items-center justify-center">
+                                    <video src={photo.imageUrl} className="h-full w-full object-cover opacity-60" muted />
+                                    <PlayCircle className="absolute h-12 w-12 text-white opacity-80 group-hover:scale-110 transition-transform" />
+                                </div>
+                            ) : (
+                                <Image 
+                                    src={photo.imageUrl} 
+                                    alt="Gallery photo" 
+                                    fill 
+                                    sizes="(max-width: 768px) 50vw, 25vw"
+                                    className="object-cover transition-transform group-hover:scale-105" 
+                                />
+                            )}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
                                 <Button size="sm" variant="secondary" onClick={() => setSelectedPhoto(photo)} className="font-bold gap-2">
                                     <ZoomIn className="h-4 w-4" /> View
                                 </Button>
                                 {canManage && (
                                     <div className="flex gap-2">
-                                        <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
-                                            <ImageIcon className="h-4 w-4" />
-                                        </Button>
+                                        {photo.mediaType !== 'video' && (
+                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
+                                                <ImageIcon className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                         <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => handleDeletePhoto(photo.id)}>
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -150,18 +159,27 @@ export default function GalleryPage() {
             ) : (
                 <div className="py-24 text-center border-2 border-dashed rounded-xl bg-secondary/5">
                     <ImageIcon className="h-16 w-16 mx-auto text-muted-foreground/20 mb-4" />
-                    <p className="text-muted-foreground font-medium">No photos in this album yet.</p>
+                    <p className="text-muted-foreground font-medium">No photos or videos in this album yet.</p>
                 </div>
             )}
 
             <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
                 <DialogContent className="max-w-5xl bg-background/95 border-primary/20 p-2 backdrop-blur-md">
                     <DialogHeader className="sr-only">
-                        <DialogTitle>Photo View</DialogTitle>
+                        <DialogTitle>Media Viewer</DialogTitle>
                     </DialogHeader>
                     {selectedPhoto && (
-                        <div className="relative aspect-[4/3] w-full">
-                            <Image src={selectedPhoto.imageUrl} alt="Zoomed view" fill className="object-contain" />
+                        <div className="relative aspect-video w-full flex items-center justify-center bg-black rounded-lg overflow-hidden">
+                            {selectedPhoto.mediaType === 'video' ? (
+                                <video 
+                                    src={selectedPhoto.imageUrl} 
+                                    className="max-h-full max-w-full" 
+                                    controls 
+                                    autoPlay 
+                                />
+                            ) : (
+                                <Image src={selectedPhoto.imageUrl} alt="Zoomed view" fill className="object-contain" />
+                            )}
                         </div>
                     )}
                 </DialogContent>
@@ -204,7 +222,7 @@ export default function GalleryPage() {
           <div className="py-24 text-center border-2 border-dashed rounded-xl bg-secondary/5">
               <FolderPlus className="h-16 w-16 mx-auto text-muted-foreground/20 mb-4" />
               <p className="text-xl text-muted-foreground font-medium">Our visual history starts here.</p>
-              <p className="mt-2 text-sm text-muted-foreground">Create an album to share photos from recent events.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Create an album to share media from recent events.</p>
           </div>
       )}
     </div>

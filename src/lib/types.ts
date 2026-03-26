@@ -77,6 +77,7 @@ export type Photo = {
   title?: string;
   description?: string;
   imageUrl: string;
+  mediaType?: 'image' | 'video';
   createdAt: string; // ISO string
   order?: number;
   names?: string[];

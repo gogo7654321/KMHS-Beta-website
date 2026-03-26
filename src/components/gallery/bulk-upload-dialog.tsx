@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { ImageIcon, Loader2, UploadCloud, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ImageIcon, Loader2, UploadCloud, CheckCircle2, Video } from 'lucide-react';
 import type { Photo } from '@/lib/types';
 
 interface BulkUploadDialogProps {
@@ -41,6 +41,7 @@ export function BulkUploadDialog({ albumId, children }: BulkUploadDialogProps) {
 
     for (let i = 0; i < totalFiles; i++) {
       const file = files[i];
+      const isVideo = file.type.startsWith('video/');
       setStatus(`Uploading ${i + 1} of ${totalFiles}: ${file.name}`);
       
       try {
@@ -48,15 +49,16 @@ export function BulkUploadDialog({ albumId, children }: BulkUploadDialogProps) {
         const storageRef = ref(storage, filePath);
         
         const snapshot = await uploadBytes(storageRef, file);
-        const imageUrl = await getDownloadURL(snapshot.ref);
+        const url = await getDownloadURL(snapshot.ref);
 
         const photoRef = doc(collection(firestore, 'photos'));
         const photoData: Photo = {
           id: photoRef.id,
           albumId,
-          imageUrl,
+          imageUrl: url, // Source URL
+          mediaType: isVideo ? 'video' : 'image',
           createdAt: new Date().toISOString(),
-          order: Date.now() + i, // Rough ordering
+          order: Date.now() + i,
         };
 
         setDocumentNonBlocking(photoRef, photoData, { merge: false });
@@ -70,9 +72,8 @@ export function BulkUploadDialog({ albumId, children }: BulkUploadDialogProps) {
 
     setIsUploading(false);
     setStatus('Upload Complete!');
-    toast({ title: 'Bulk Upload Successful', description: `${completed} photos added to the album.` });
+    toast({ title: 'Bulk Upload Successful', description: `${completed} items added to the album.` });
     
-    // Auto-close after a delay
     setTimeout(() => {
         setIsOpen(false);
         setProgress(0);
@@ -91,20 +92,25 @@ export function BulkUploadDialog({ albumId, children }: BulkUploadDialogProps) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Bulk Upload Photos</DialogTitle>
+          <DialogTitle>Bulk Upload Media</DialogTitle>
           <DialogDescription>
-            Select multiple images to upload directly to this album.
+            Select multiple images and videos to upload to this album.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed rounded-lg bg-secondary/10 gap-4">
+        <div className="py-10 flex flex-col items-center justify-center border-2 border-dashed rounded-xl bg-secondary/10 gap-4">
             {!isUploading && status !== 'Upload Complete!' ? (
                 <>
-                    <UploadCloud className="h-12 w-12 text-muted-foreground" />
-                    <Button onClick={() => fileInputRef.current?.click()} className="font-bold">
-                        Choose Photos
+                    <div className="flex gap-4">
+                        <UploadCloud className="h-12 w-12 text-muted-foreground opacity-50" />
+                        <Video className="h-12 w-12 text-muted-foreground opacity-50" />
+                    </div>
+                    <Button onClick={() => fileInputRef.current?.click()} className="font-bold px-8">
+                        Choose Files
                     </Button>
-                    <p className="text-xs text-muted-foreground">JPG, PNG, GIF up to 10MB each</p>
+                    <p className="text-xs text-muted-foreground px-10 text-center">
+                        Supports images and videos (MP4, MOV) up to 50MB per file.
+                    </p>
                 </>
             ) : isUploading ? (
                 <div className="w-full px-10 space-y-4 text-center">
@@ -123,7 +129,7 @@ export function BulkUploadDialog({ albumId, children }: BulkUploadDialogProps) {
                 ref={fileInputRef}
                 onChange={onFileSelect}
                 multiple
-                accept="image/*"
+                accept="image/*,video/*"
                 className="hidden"
             />
         </div>
