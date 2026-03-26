@@ -67,6 +67,7 @@ export type Album = {
   title: string;
   description?: string;
   coverImageUrl?: string;
+  coverImageRotation?: number;
   createdAt: string;
   order?: number;
 };

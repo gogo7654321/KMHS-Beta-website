@@ -3,9 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase, useStorage } from '@/firebase';
-import { collection, query, orderBy, doc, where, deleteDoc, limit, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { useUser, useFirestore, useCollection, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, doc, where, deleteDoc, limit } from 'firebase/firestore';
 import type { Admin, Album, Photo, Event } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddEditAlbumDialog } from '@/components/gallery/add-edit-album-dialog';
@@ -20,7 +19,6 @@ import { format } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MediaSocialSection } from '@/components/gallery/media-social-section';
-import { cn } from '@/lib/utils';
 
 function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
   return (
@@ -30,7 +28,13 @@ function AlbumCard({ album, onClick }: { album: Album; onClick: () => void }) {
     >
       <div className="relative aspect-video w-full bg-muted overflow-hidden">
         {album.coverImageUrl ? (
-          <Image src={album.coverImageUrl} alt={album.title} fill className="object-cover transition-transform group-hover:scale-105" />
+          <Image 
+            src={album.coverImageUrl} 
+            alt={album.title} 
+            fill 
+            className="object-cover transition-transform group-hover:scale-105" 
+            style={{ transform: `rotate(${album.coverImageRotation || 0}deg)` }}
+          />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground/40">
             <ImageIcon className="h-12 w-12" />
@@ -57,7 +61,6 @@ export default function GalleryPage() {
   const [isRotatingId, setIsRotatingId] = useState<string | null>(null);
   
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   const { user } = useUser();
   
@@ -95,12 +98,15 @@ export default function GalleryPage() {
     }
   };
 
-  const handleSetCover = async (imageUrl: string) => {
+  const handleSetCover = async (photo: Photo) => {
     if (!albumId) return;
     try {
         const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
-        setDocumentNonBlocking(doc(firestore, 'albums', albumId), { coverImageUrl: imageUrl }, { merge: true });
-        toast({ title: 'Cover Updated', description: 'Album cover image set successfully.' });
+        setDocumentNonBlocking(doc(firestore, 'albums', albumId), { 
+          coverImageUrl: photo.imageUrl,
+          coverImageRotation: photo.rotation || 0 
+        }, { merge: true });
+        toast({ title: 'Cover Updated', description: 'Album cover set with correct rotation.' });
     } catch (e: any) {
         toast({ variant: 'destructive', title: 'Error', description: e.message });
     }
@@ -113,56 +119,14 @@ export default function GalleryPage() {
     const { id: tid } = toast({ title: 'Rotating media...', description: 'Applying -90° rotation.' });
     
     try {
-      if (photo.mediaType === 'video') {
-        // Videos use logical rotation via CSS metadata update (much faster, no re-upload)
-        const currentRotation = photo.rotation || 0;
-        const newRotation = (currentRotation - 90) % 360;
-        const { updateDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
-        updateDocumentNonBlocking(doc(firestore, 'photos', photo.id), { rotation: newRotation });
-        toast({ id: tid, title: 'Rotation Updated', description: 'Video orientation saved.' });
-      } else {
-        // Photos use "real" rotation via canvas/re-upload for cross-platform compatibility
-        const img = new (window as any).Image();
-        img.crossOrigin = 'anonymous';
-        img.src = photo.imageUrl;
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => reject(new Error('Failed to load image for processing.'));
-        });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = img.height;
-        canvas.height = img.width;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Canvas processing error');
-
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Processing failed')), 'image/jpeg', 0.9);
-        });
-
-        const filePath = `gallery/${albumId}/${Date.now()}_rotated.jpg`;
-        const storageRef = ref(storage, filePath);
-        await uploadBytes(storageRef, blob);
-        const newUrl = await getDownloadURL(storageRef);
-
-        const { setDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
-        setDocumentNonBlocking(doc(firestore, 'photos', photo.id), { imageUrl: newUrl, rotation: 0 }, { merge: true });
-
-        if (photo.imageUrl.includes('firebasestorage.googleapis.com')) {
-          try {
-            const oldRef = ref(storage, photo.imageUrl);
-            await deleteObject(oldRef);
-          } catch (e) {
-            console.warn("Cleanup warning:", e);
-          }
-        }
-        toast({ id: tid, title: 'Rotation Complete', description: 'Photo updated successfully.' });
-      }
+      // Logical metadata rotation is fast for both photos and videos
+      const currentRotation = photo.rotation || 0;
+      const newRotation = (currentRotation - 90) % 360;
+      
+      const { updateDocumentNonBlocking } = await import('@/firebase/non-blocking-updates');
+      updateDocumentNonBlocking(doc(firestore, 'photos', photo.id), { rotation: newRotation });
+      
+      toast({ id: tid, title: 'Rotation Updated', description: 'Orientation saved instantly.' });
     } catch (e: any) {
       toast({ id: tid, variant: 'destructive', title: 'Rotation Error', description: e.message });
     } finally {
@@ -277,7 +241,7 @@ export default function GalleryPage() {
                                         </Button>
                                         
                                         {photo.mediaType !== 'video' && (
-                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo.imageUrl)} title="Set as Album Cover">
+                                            <Button size="icon" variant="outline" className="h-8 w-8 text-white border-white/20" onClick={() => handleSetCover(photo)} title="Set as Album Cover">
                                                 <ImageIcon className="h-4 w-4" />
                                             </Button>
                                         )}
