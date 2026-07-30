@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, doc, query, orderBy } from 'firebase/firestore';
+import { collection, doc, query, orderBy, deleteField } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
@@ -109,16 +109,28 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       combinedDateTime.setHours(parseInt(hours, 10));
       combinedDateTime.setMinutes(parseInt(minutes, 10));
 
-      const eventData: Omit<Event, 'id'> = {
+      // Firestore's setDoc rejects `undefined` field values, so build the
+      // payload without undefined fields. Only include optional fields when set.
+      const eventData: Record<string, any> = {
         title: data.title,
         description: data.description,
         location: data.location,
         dateTime: combinedDateTime.toISOString(),
-        endTime: data.endTime,
         types: data.types as EventType[],
         rsvpEnabled: false,
-        albumId: data.albumId === 'none' ? undefined : data.albumId,
       };
+
+      if (data.endTime) {
+        eventData.endTime = data.endTime;
+      }
+
+      const hasAlbum = data.albumId && data.albumId !== 'none';
+      if (hasAlbum) {
+        eventData.albumId = data.albumId;
+      } else if (mode === 'edit') {
+        // Clear any previously-linked album when "None" is selected.
+        eventData.albumId = deleteField();
+      }
 
       let eventRef;
       if (mode === 'add') {
@@ -128,7 +140,7 @@ export function AddEditEventDialog({ mode, event, children, onEventAddedOrUpdate
       } else {
         throw new Error('Cannot update event without ID.');
       }
-      
+
       const finalData = { ...eventData, id: eventRef.id };
       setDocumentNonBlocking(eventRef, finalData, { merge: mode === 'edit' });
 

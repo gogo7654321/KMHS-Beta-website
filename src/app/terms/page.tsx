@@ -1,13 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function TermsOfServicePage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-16 md:px-6">
       <h1 className="font-headline text-4xl font-bold mb-8 text-primary uppercase tracking-tight">Terms of Service</h1>
       <div className="prose prose-invert max-w-none space-y-8 text-muted-foreground">
-        <p className="italic">Last Updated: {new Date().toLocaleDateString()}</p>
+        <p className="italic">Last Updated: {mounted ? new Date().toLocaleDateString() : 'Loading date...'}</p>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-bold text-foreground">1. Acceptance of Terms</h2>

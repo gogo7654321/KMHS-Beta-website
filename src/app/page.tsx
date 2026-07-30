@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { benefits } from '@/lib/data';
-import { MoveRight, Megaphone, Instagram } from 'lucide-react';
+import { MoveRight, Megaphone, Instagram, MessageSquare } from 'lucide-react';
 import { useFirestore, useUser, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import type { Admin, HomePageContent, BlogPost } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnnouncementEditor } from '@/components/home/announcement-editor';
-import { InfiniteCarousel } from '@/components/home/infinite-carousel';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
@@ -66,6 +66,12 @@ function AnnouncementBar() {
 
 function RecentStories() {
   const firestore = useFirestore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const storiesQuery = useMemoFirebase(() =>
     query(collection(firestore, 'blogs'), orderBy('createdAt', 'desc'), limit(6)),
     [firestore]
@@ -118,7 +124,9 @@ function RecentStories() {
                 </CardHeader>
                 <CardContent className="px-6 pb-6 pt-0">
                    <p className="line-clamp-2 text-sm text-muted-foreground mb-4 opacity-80">{post.content.replace(/[#*`]/g, '').substring(0, 100)}...</p>
-                  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 border-t border-border/50 pt-4">{format(new Date(post.createdAt), 'MMMM d, yyyy')}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 border-t border-border/50 pt-4">
+                    {mounted ? format(new Date(post.createdAt), 'MMMM d, yyyy') : 'Loading date...'}
+                  </div>
                 </CardContent>
               </Card>
             </Link>
@@ -141,15 +149,15 @@ export default function Home() {
             <p className="mt-4 max-w-3xl text-lg font-semibold text-foreground/90 md:text-xl">Lead by Serving Others.</p>
             <p className="mt-2 max-w-2xl text-md text-foreground/70 md:text-lg">Fostering academic achievement, character, leadership, and service within the Kennesaw Mountain High School community.</p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="group text-lg font-bold"><Link href="/events">Explore Events <MoveRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" /></Link></Button>
+              <Button asChild size="lg" className="group text-lg font-bold"><a href="https://www.remind.com/join/kmbeta" target="_blank" rel="noopener noreferrer">Join Remind <MessageSquare className="ml-2 h-5 w-5" /></a></Button>
+              <Button asChild variant="outline" size="lg" className="group text-lg border-primary text-primary hover:bg-primary/10 font-bold"><Link href="/events">Explore Events <MoveRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" /></Link></Button>
               <Button asChild variant="outline" size="lg" className="group text-lg border-primary text-primary hover:bg-primary/10 font-bold"><a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer">Follow Us <Instagram className="ml-2 h-5 w-5" /></a></Button>
             </div>
+            <p className="mt-4 text-sm font-medium text-foreground/60">Class code <span className="font-bold text-primary">@kmbeta</span> on Remind</p>
           </div>
         </div>
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
-
-      <InfiniteCarousel />
 
       <section id="benefits" className="w-full py-20 md:py-32 bg-background">
         <div className="container mx-auto px-4 md:px-6">

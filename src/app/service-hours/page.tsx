@@ -1,84 +1,45 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { serviceStats, topVolunteers } from "@/lib/data";
-import { ServiceHoursChart } from "./service-hours-chart";
-import { Crown } from "lucide-react";
-import type { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Chapter Impact',
-  description: 'Track the collective service hours and volunteer achievements of Kennesaw Mountain High School Beta members as we lead by serving others.',
-};
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Heart, ChevronLeft } from "lucide-react";
+import Link from 'next/link';
 
 export default function ServiceHoursPage() {
-  const progressPercentage = (serviceStats.current / serviceStats.goal) * 100;
-
   return (
-    <div className="container mx-auto px-4 py-12 md:px-6">
-      <div className="mb-12 text-center">
+    <div className="container mx-auto px-4 py-24 md:py-32 flex flex-col items-center justify-center text-center">
+      <div className="mb-12">
         <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl text-primary">
           Chapter Impact
         </h1>
         <p className="mx-auto mt-4 max-w-[700px] text-muted-foreground md:text-xl">
-          Tracking our collective impact at Kennesaw Mountain High School, one hour at a time.
+          Leading by serving others at Kennesaw Mountain High School.
         </p>
       </div>
 
-      <Card className="mb-8 border-border/50 bg-secondary/20">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Service Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-2 flex justify-between text-lg font-medium">
-            <span className="text-foreground">{serviceStats.current.toLocaleString()} Hours</span>
-            <span className="text-muted-foreground">Goal: {serviceStats.goal.toLocaleString()} Hours</span>
-          </div>
-          <Progress value={progressPercentage} className="h-4 [&>div]:bg-primary" />
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            We are {progressPercentage.toFixed(1)}% of the way to our goal!
-          </p>
-        </CardContent>
-      </Card>
+      <div className="max-w-[600px] w-full border-2 border-dashed border-primary/20 rounded-2xl p-12 bg-secondary/5 shadow-2xl">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 blur-2xl bg-primary/20 rounded-full h-24 w-24 mx-auto"></div>
+          <Heart className="h-20 w-20 text-primary mx-auto relative animate-pulse" />
+        </div>
+        
+        <h2 className="text-3xl font-bold font-headline mb-4">Tracking Coming Soon</h2>
+        <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
+          We are currently building a robust dashboard to showcase our chapter's collective impact and celebrate our top volunteers. Check back soon for real-time statistics!
+        </p>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button asChild size="lg" className="font-bold px-8 h-12">
+            <Link href="/">Return Home</Link>
+          </Button>
+          <Button variant="outline" asChild size="lg" className="font-bold px-8 h-12">
+            <Link href="/blog">Read Impact Stories</Link>
+          </Button>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <Card className="border-border/50 bg-secondary/20">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Top Volunteers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/50">
-                  <TableHead className="w-[80px]">Rank</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Hours</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topVolunteers.map((volunteer) => (
-                  <TableRow key={volunteer.rank} className="border-border/50">
-                    <TableCell className="flex items-center gap-2 text-lg font-medium">
-                      {volunteer.rank === 1 && <Crown className="h-5 w-5 text-primary" />}
-                      {volunteer.rank}
-                    </TableCell>
-                    <TableCell>{volunteer.name}</TableCell>
-                    <TableCell className="text-right font-semibold text-primary">{volunteer.hours}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-secondary/20">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Monthly Service Impact</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ServiceHoursChart />
-          </CardContent>
-        </Card>
+      <div className="mt-16 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/40">
+        Kennesaw Mountain High School Beta • Service & Leadership
       </div>
     </div>
   );

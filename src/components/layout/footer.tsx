@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Instagram } from 'lucide-react';
+import { Instagram, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/button';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/data';
@@ -27,6 +27,11 @@ export function Footer() {
               <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10">
                 <Link href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <Instagram className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10">
+                <Link href="https://www.remind.com/join/kmbeta" target="_blank" rel="noopener noreferrer" aria-label="Join us on Remind (@kmbeta)">
+                  <MessageSquare className="h-5 w-5 text-muted-foreground transition-colors hover:text-primary" />
                 </Link>
               </Button>
             </div>

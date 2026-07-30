@@ -1,9 +1,15 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, Users, Heart, Code, Handshake, Instagram } from "lucide-react"
+import { Mail, Users, Heart, Code, Handshake, Instagram, MessageSquare } from "lucide-react"
 
 const contactTopics = [
+  {
+    title: "Join Us on Remind",
+    description: "Remind is our official communication app for announcements and updates. Join with class code @kmbeta, or tap here to sign up.",
+    icon: MessageSquare,
+    href: "https://www.remind.com/join/kmbeta"
+  },
   {
     title: "General Inquiries",
     description: "For any general questions about the KMHS Beta Club, our activities, or mission.",
@@ -50,6 +56,9 @@ export default function ContactPage() {
              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="mailto:kmhsbeta@studizilla.com" className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                     <Mail className="mr-2 h-5 w-5" /> kmhsbeta@studizilla.com
+                </a>
+                <a href="https://www.remind.com/join/kmbeta" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md border border-primary px-6 py-3 text-lg font-semibold text-primary transition-colors hover:bg-primary/10">
+                    <MessageSquare className="mr-2 h-5 w-5" /> Remind: @kmbeta
                 </a>
                 <a href="https://www.instagram.com/kmhsbetaclub" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md border border-primary px-6 py-3 text-lg font-semibold text-primary transition-colors hover:bg-primary/10">
                     <Instagram className="mr-2 h-5 w-5" /> @kmhsbetaclub
