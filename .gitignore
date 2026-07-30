@@ -15,8 +15,9 @@
 .env.test.local
 .env.production.local
 
-# Sensitive configuration
-src/firebase/config.ts
+# Firebase web config (src/firebase/config.ts) is committed intentionally.
+# These are public client-side identifiers, not secrets — access is enforced
+# by Firestore/Storage security rules. Required at build time by App Hosting.
 
 # Log files
 npm-debug.log*
