@@ -5,3 +5,14 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+# Firebase web config, injected from a Secret Manager secret (kept out of the
+# repo). Create/update the secret's value with:
+#   firebase apphosting:secrets:set NEXT_PUBLIC_FIREBASE_CONFIG
+# (paste the web app config as a single-line JSON string when prompted).
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_CONFIG
+    secret: NEXT_PUBLIC_FIREBASE_CONFIG
+    availability:
+      - BUILD
+      - RUNTIME
