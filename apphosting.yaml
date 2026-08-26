@@ -6,13 +6,7 @@ runConfig:
   # more instances in response to increased traffic.
   maxInstances: 1
 
-# Firebase web config, injected from a Secret Manager secret (kept out of the
-# repo). Create/update the secret's value with:
-#   firebase apphosting:secrets:set NEXT_PUBLIC_FIREBASE_CONFIG
-# (paste the web app config as a single-line JSON string when prompted).
-env:
-  - variable: NEXT_PUBLIC_FIREBASE_CONFIG
-    secret: NEXT_PUBLIC_FIREBASE_CONFIG
-    availability:
-      - BUILD
-      - RUNTIME
+# No env/secrets needed for Firebase config: App Hosting automatically injects
+# the web app config (FIREBASE_WEBAPP_CONFIG) at build and runtime, and the app
+# initializes from it. src/firebase/config.ts reads that as a fallback for
+# server-side code; local dev uses .env.local.
