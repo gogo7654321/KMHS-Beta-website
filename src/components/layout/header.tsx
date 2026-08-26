@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, User as UserIcon, LogIn, LayoutDashboard, Shield, LogOut } from 'lucide-react';
+import { Menu, User as UserIcon, LogIn, LayoutDashboard, Shield, LogOut, ClipboardList } from 'lucide-react';
+import { APPLICATION_URL, areApplicationsOpen } from '@/lib/application';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
@@ -107,6 +108,13 @@ export function Header() {
               <Link href={link.href}>{link.label}</Link>
             </Button>
           ))}
+          {areApplicationsOpen() && (
+            <Button asChild className="ml-2 font-bold gap-2 shadow-md shadow-primary/20">
+              <a href={APPLICATION_URL} target="_blank" rel="noopener noreferrer">
+                <ClipboardList className="h-4 w-4" /> Apply
+              </a>
+            </Button>
+          )}
           <UserNav />
         </nav>
         <div className="md:hidden">
@@ -126,6 +134,14 @@ export function Header() {
                     </Link>
                   ))}
                 </nav>
+
+                {areApplicationsOpen() && (
+                  <Button asChild className="w-full font-bold gap-2 h-12 shadow-md shadow-primary/20" onClick={() => setMobileMenuOpen(false)}>
+                    <a href={APPLICATION_URL} target="_blank" rel="noopener noreferrer">
+                      <ClipboardList className="h-5 w-5" /> Apply to Beta Club
+                    </a>
+                  </Button>
+                )}
 
                 <div className="pt-6 border-t border-border">
                   {!user ? (
