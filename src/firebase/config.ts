@@ -1,10 +1,13 @@
-// Firebase web configuration, loaded from the environment so no keys live in
-// the repo. Provide NEXT_PUBLIC_FIREBASE_CONFIG as the web app config JSON:
-//   - Local dev:   .env.local            (gitignored)
-//   - App Hosting: a Secret Manager secret referenced in apphosting.yaml
+// Firebase web configuration.
 //
-// Firebase App Hosting also auto-injects FIREBASE_WEBAPP_CONFIG at runtime for
-// server-side code, which is used as a fallback.
+// These are PUBLIC client-side identifiers — they ship in the browser bundle no
+// matter what, and access is protected by Firestore/Storage security rules, not
+// by keeping them secret (see https://firebase.google.com/docs/projects/api-keys).
+//
+// Resolution order:
+//   1. NEXT_PUBLIC_FIREBASE_CONFIG env var (e.g. .env.local for local dev)
+//   2. FIREBASE_WEBAPP_CONFIG, which App Hosting auto-injects (server-side)
+//   3. The committed fallback below — guarantees the client always initializes.
 
 type FirebaseWebConfig = {
   apiKey?: string;
@@ -13,6 +16,15 @@ type FirebaseWebConfig = {
   storageBucket?: string;
   messagingSenderId?: string;
   appId?: string;
+};
+
+const FALLBACK_CONFIG: FirebaseWebConfig = {
+  apiKey: 'AIzaSyAM8UvIJVMBONoElzR8rlWiGTqN-SupXOE',
+  authDomain: 'studio-8652128073-34949.firebaseapp.com',
+  projectId: 'studio-8652128073-34949',
+  storageBucket: 'studio-8652128073-34949.firebasestorage.app',
+  messagingSenderId: '995999291856',
+  appId: '1:995999291856:web:8c9095806b561bd831c1d5',
 };
 
 function loadFirebaseConfig(): FirebaseWebConfig {
@@ -35,7 +47,7 @@ function loadFirebaseConfig(): FirebaseWebConfig {
     }
   }
 
-  return {};
+  return FALLBACK_CONFIG;
 }
 
 export const firebaseConfig = loadFirebaseConfig();
