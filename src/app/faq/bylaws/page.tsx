@@ -42,8 +42,7 @@ Meetings are held the 2nd and 4th Wednesday of each month.
 Any member who accumulates three (3) consecutive absences or seven (7) total absences within one academic year shall be summarily dismissed.
 
 ## Mandatory Review
-Members who miss three (3) or more meetings must schedule a 1-on-1 accountability session with the Faculty Advisor or the Director of Membership to justify their continued status in the club. This rule applies to everyone except Hazel, Grace, and D/F/Zara.
-
+Members who miss three (3) or more meetings must schedule a 1-on-1 accountability session with the Faculty Advisor or the Director of Membership to justify their continued status in the club.
 # Article IV: Executive Board & Governance
 
 ## Supreme Authority
